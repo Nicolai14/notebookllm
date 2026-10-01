@@ -65,4 +65,13 @@ describe("processSource timeout", () => {
     expect(result.status).toBe("ready");
     expect(insertChunks).toHaveBeenCalledTimes(1);
   });
+
+  it("rejects documents above the extracted-token limit with a clear message", async () => {
+    // ~130k estimated tokens > MAX_EXTRACTED_TOKENS (120k)
+    const huge = Buffer.from("Wort ".repeat(104_000));
+    const result = await processSource(source, huge, 10_000);
+    expect(result.status).toBe("error");
+    expect(result.error_message).toContain("Verarbeitungslimit");
+    expect(insertChunks).not.toHaveBeenCalled();
+  });
 });
