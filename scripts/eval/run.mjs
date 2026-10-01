@@ -17,9 +17,13 @@ process.loadEnvFile(join(root, ".env"));
 
 const PORT = 3190;
 const BASE = `http://127.0.0.1:${PORT}`;
-const DATE = "2026-10-01";
+const now = new Date();
+const DATE = `${now.toISOString().slice(0, 10)}-${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}`;
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Judge model may differ from the system under test; falls back to the same
+// model (self-evaluation), which the report flags explicitly.
+const JUDGE_MODEL = process.env.OPENAI_JUDGE_MODEL || process.env.OPENAI_CHAT_MODEL;
 const judgeUsage = { prompt: 0, completion: 0, calls: 0 };
 
 // ---------------------------------------------------------------- server ----
@@ -142,7 +146,7 @@ async function runSse(path, body) {
 // ----------------------------------------------------------------- judge ----
 async function judge(systemAsk, payload) {
   const res = await openai.chat.completions.create({
-    model: process.env.OPENAI_CHAT_MODEL,
+    model: JUDGE_MODEL,
     ...(process.env.OPENAI_REASONING_EFFORT
       ? { reasoning_effort: process.env.OPENAI_REASONING_EFFORT }
       : {}),
@@ -176,13 +180,27 @@ async function judgeFaithfulness(question, message) {
 }
 
 async function judgeSummary(message, keyPoints, sourceText) {
+  const truncated = sourceText.length > 12_000;
   return judge(
     "Du prüfst eine automatisch erstellte Zusammenfassung gegen den Quelltext. " +
       'Format: {"inhalt_korrekt": true/false, "kernpunkte_abgedeckt": true/false, "fehlende_kernpunkte": ["..."], "begruendung": "..."}. ' +
-      '"inhalt_korrekt": Keine Aussage widerspricht dem Quelltext oder ist erfunden. ' +
+      '"inhalt_korrekt": Keine Aussage widerspricht dem gezeigten Quelltext oder ist erfunden. ' +
+      (truncated
+        ? "WICHTIG: Der Quelltext ist gekürzt; werte nur Widersprüche zum gezeigten Teil, nicht fehlende Bestätigung. "
+        : "") +
       '"kernpunkte_abgedeckt": Alle genannten Kernpunkte kommen sinngemäß vor.',
     `Erwartete Kernpunkte:\n${keyPoints.map((k) => `- ${k}`).join("\n")}\n\n` +
-      `Quelltext (ggf. gekürzt):\n${sourceText.slice(0, 6000)}\n\nZusammenfassung:\n${message.content}`
+      `Quelltext${truncated ? " (gekürzt)" : ""}:\n${sourceText.slice(0, 12_000)}\n\nZusammenfassung:\n${message.content}`
+  );
+}
+
+async function judgeNoCarryOver(question, message, fact) {
+  return judge(
+    "Im Gesprächsverlauf stand eine frühere Antwort mit einem Fakt, dessen Quelle inzwischen abgewählt ist. " +
+      'Format: {"uebernommen": true/false, "begruendung": "..."}. ' +
+      '"uebernommen" ist true, wenn die Antwort den Fakt als gültige/belegte Information präsentiert. ' +
+      "Es ist false, wenn die Antwort den Fakt gar nicht nennt ODER ihn ausdrücklich als nicht belegt zurückweist.",
+    `Fakt aus dem Verlauf: ${fact}\n\nFrage: ${question}\n\nAntwort:\n${message.content}`
   );
 }
 
@@ -261,41 +279,64 @@ try {
   const notebooks = new Map(); // group -> { id, sourceIdByName }
 
   for (const testCase of CASES) {
-    const groupKey = testCase.notebookGroup ?? testCase.id;
-    if (!notebooks.has(groupKey)) {
-      notebooks.set(groupKey, {
-        id: await createNotebook(`Eval ${groupKey}`),
-        sourceIdByName: {},
-      });
-    }
-    const notebook = notebooks.get(groupKey);
-    for (const doc of testCase.docs ?? []) {
-      if (!notebook.sourceIdByName[doc]) {
-        process.stdout.write(`  upload ${doc} ...\n`);
-        notebook.sourceIdByName[doc] = await uploadDocument(notebook.id, doc);
-      }
-    }
-    const selectedIds = testCase.select.map((name) => {
-      const id = notebook.sourceIdByName[name];
-      if (!id) throw new Error(`case ${testCase.id}: source ${name} not uploaded`);
-      return id;
-    });
-
     process.stdout.write(`case ${testCase.id} ...\n`);
-    const path =
-      testCase.kind === "chat"
-        ? `/api/notebooks/${notebook.id}/chat`
-        : `/api/notebooks/${notebook.id}/summary`;
-    const body =
-      testCase.kind === "chat"
-        ? { question: testCase.question, sourceIds: selectedIds }
-        : { sourceIds: selectedIds };
-
     let outcome;
     try {
+      // Setup failures count as a failed case instead of aborting the run.
+      const groupKey = testCase.notebookGroup ?? testCase.id;
+      if (!notebooks.has(groupKey)) {
+        notebooks.set(groupKey, {
+          id: await createNotebook(`Eval ${groupKey}`),
+          sourceIdByName: {},
+        });
+      }
+      const notebook = notebooks.get(groupKey);
+      for (const doc of testCase.docs ?? []) {
+        if (!notebook.sourceIdByName[doc]) {
+          process.stdout.write(`  upload ${doc} ...\n`);
+          notebook.sourceIdByName[doc] = await uploadDocument(notebook.id, doc);
+        }
+      }
+      const selectedIds = testCase.select.map((name) => {
+        const id = notebook.sourceIdByName[name];
+        if (!id) throw new Error(`case ${testCase.id}: source ${name} not uploaded`);
+        return id;
+      });
+
+      const path =
+        testCase.kind === "chat"
+          ? `/api/notebooks/${notebook.id}/chat`
+          : `/api/notebooks/${notebook.id}/summary`;
+      const body =
+        testCase.kind === "chat"
+          ? { question: testCase.question, sourceIds: selectedIds }
+          : { sourceIds: selectedIds };
+
       const { message, deltas, durationMs } = await runSse(path, body);
       const checks = autoChecks(testCase, message, selectedIds, notebook.sourceIdByName);
 
+      if (testCase.expect.judgeFaithfulness && message.citations.length === 0) {
+        // An uncited answer must not silently skip the faithfulness judge.
+        checks.push({
+          name: "Antwort ohne Zitate (Belegtreue nicht prüfbar)",
+          method: "auto",
+          pass: false,
+          detail: message.content.slice(0, 160),
+        });
+      }
+      if (testCase.expect.judgeNoCarryOver) {
+        const verdict = await judgeNoCarryOver(
+          testCase.question,
+          message,
+          testCase.expect.judgeNoCarryOver.fact
+        );
+        checks.push({
+          name: "keine unbelegte Übernahme aus dem Verlauf",
+          method: "ai-reviewer",
+          pass: verdict.uebernommen === false,
+          detail: verdict.begruendung ?? "",
+        });
+      }
       if (testCase.expect.judgeFaithfulness && message.citations.length > 0) {
         const verdict = await judgeFaithfulness(testCase.question, message);
         checks.push({
@@ -387,7 +428,10 @@ lines.push(
   `Modell: \`${process.env.OPENAI_CHAT_MODEL}\` (reasoning_effort=${process.env.OPENAI_REASONING_EFFORT ?? "nicht gesetzt"}), ` +
     `Embeddings: \`${process.env.OPENAI_EMBEDDING_MODEL}\` (${process.env.OPENAI_EMBEDDING_DIMENSIONS}). ` +
     `Echte OpenAI-Aufrufe, kein Mock. Prüfmethoden: "auto" = deterministische Prüfung, ` +
-    `"ai-reviewer" = Bewertung durch das konfigurierte Modell (keine menschliche Prüfung).`
+    `"ai-reviewer" = Bewertung durch \`${JUDGE_MODEL}\`` +
+    (JUDGE_MODEL === process.env.OPENAI_CHAT_MODEL
+      ? " (identisch mit dem geprüften Modell, also Selbstbewertung; keine menschliche Prüfung)."
+      : " (keine menschliche Prüfung).")
 );
 lines.push("");
 lines.push(`**Ergebnis: ${passed}/${results.length} Fälle bestanden.**`);
