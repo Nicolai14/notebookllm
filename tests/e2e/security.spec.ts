@@ -59,11 +59,42 @@ test.describe("Zugriffsschutz", () => {
   });
 
   test("falsches Passwort wird abgelehnt", async ({ playwright }) => {
-    const context = await playwright.request.newContext({ baseURL });
+    // Own rate-limit bucket so repeated runs never trip the login limit.
+    const fakeIp = `wrongpw-${Date.now()}`;
+    const context = await playwright.request.newContext({
+      baseURL,
+      extraHTTPHeaders: { "x-forwarded-for": fakeIp },
+    });
     const response = await context.post("/api/auth/login", {
       data: { password: "definitiv-falsch" },
     });
     expect(response.status()).toBe(401);
+    const { createClient } = await import("@supabase/supabase-js");
+    await createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+      auth: { persistSession: false },
+    })
+      .from("rate_limits")
+      .delete()
+      .eq("key", `login:${fakeIp}`);
+    await context.dispose();
+  });
+
+  test("Logout invalidiert die Session serverseitig (kopiertes Cookie wird wertlos)", async ({ playwright }) => {
+    const context = await playwright.request.newContext({ baseURL });
+    await context.post("/api/auth/login", { data: { password: PASSWORD } });
+    const cookie = (await context.storageState()).cookies.find(
+      (c) => c.name === "nb_session"
+    )!;
+    expect((await context.get("/api/notebooks")).status()).toBe(200);
+    await context.post("/api/auth/logout");
+
+    // A copy of the pre-logout cookie must be rejected: the session row is gone.
+    const stolen = await playwright.request.newContext({
+      baseURL,
+      extraHTTPHeaders: { cookie: `nb_session=${cookie.value}` },
+    });
+    expect((await stolen.get("/api/notebooks")).status()).toBe(401);
+    await stolen.dispose();
     await context.dispose();
   });
 

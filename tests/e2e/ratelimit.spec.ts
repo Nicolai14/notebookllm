@@ -102,5 +102,7 @@ test("Login-Limit sperrt nach zu vielen Fehlversuchen pro IP", async ({ playwrig
   expect(blockedRight.status()).toBe(429);
 
   await db().from("rate_limits").delete().eq("key", `login:${fakeIp}`);
+  // Keep the shared global backstop clean for repeated suite runs.
+  await db().from("rate_limits").delete().eq("key", "login-global");
   await context.dispose();
 });

@@ -48,6 +48,17 @@ const SUMMARY_ANSWER =
   "Kurze Einordnung der ausgewählten Quellen.\n- Erster Kernpunkt [1]\n- Zweiter Kernpunkt [2]\n- Erfundener Punkt [77]";
 
 const stats = { embeddings: 0, chat: 0 };
+// Fault injection: the next N requests per target answer with an API error.
+const failures = { embeddings: 0, chat: 0 };
+
+function apiError(res) {
+  res.writeHead(500, { "Content-Type": "application/json" });
+  res.end(
+    JSON.stringify({
+      error: { message: "mock induced failure", type: "server_error", code: null },
+    })
+  );
+}
 
 function isSummaryPrompt(body) {
   const last = body.messages?.[body.messages.length - 1]?.content ?? "";
@@ -63,6 +74,8 @@ const server = createServer(async (req, res) => {
   if (req.url === "/__reset") {
     stats.embeddings = 0;
     stats.chat = 0;
+    failures.embeddings = 0;
+    failures.chat = 0;
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify(stats));
     return;
@@ -70,8 +83,20 @@ const server = createServer(async (req, res) => {
 
   const body = await readBody(req);
 
+  if (req.url === "/__fail") {
+    failures[body.target] = body.times ?? 1;
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(failures));
+    return;
+  }
+
   if (req.url?.endsWith("/embeddings")) {
     stats.embeddings += 1;
+    if (failures.embeddings > 0) {
+      failures.embeddings -= 1;
+      apiError(res);
+      return;
+    }
     const inputs = Array.isArray(body.input) ? body.input : [body.input];
     const dimensions = body.dimensions ?? 1536;
     res.writeHead(200, { "Content-Type": "application/json" });
@@ -92,6 +117,11 @@ const server = createServer(async (req, res) => {
 
   if (req.url?.endsWith("/chat/completions")) {
     stats.chat += 1;
+    if (failures.chat > 0) {
+      failures.chat -= 1;
+      apiError(res);
+      return;
+    }
     const parts = isSummaryPrompt(body) ? [SUMMARY_ANSWER] : ANSWER_PARTS;
 
     if (!body.stream) {

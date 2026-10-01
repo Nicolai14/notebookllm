@@ -60,14 +60,22 @@ test("Quellenauswahl schränkt das Retrieval ein", async ({ playwright }, testIn
   expect(both.citations[0].filename).toBe("dach.txt");
 
   // Restricted selection: dach.txt is deselected, so no citation may use it.
+  // Both legitimate outcomes are asserted explicitly so the test can never
+  // pass vacuously: either a grounded refusal (no citations) or an answer
+  // backed exclusively by the allowed source.
   const restricted = await finalMessage(
     await session.post(`/api/notebooks/${notebookId}/chat`, {
       data: { question, sourceIds: [pumpenId] },
     })
   );
-  for (const citation of restricted.citations) {
-    expect(citation.filename).toBe("pumpen.txt");
-    expect(citation.source_id).toBe(pumpenId);
+  expect(restricted.content).not.toContain("Ton");
+  if (restricted.citations.length === 0) {
+    expect(restricted.content).toMatch(/keine Grundlage|nicht beantwort|keine Angaben/i);
+  } else {
+    for (const citation of restricted.citations) {
+      expect(citation.filename).toBe("pumpen.txt");
+      expect(citation.source_id).toBe(pumpenId);
+    }
   }
 
   await session.delete(`/api/notebooks/${notebookId}`);

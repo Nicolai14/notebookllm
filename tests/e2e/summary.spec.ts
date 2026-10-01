@@ -131,11 +131,20 @@ test.describe("Zusammenfassung", () => {
     expect(upload.status()).toBe(201);
     const sourceId = (await upload.json()).source.id;
 
+    // Prove the staged path actually ran: more than one model call.
+    const mock = await playwright.request.newContext({
+      baseURL: "http://127.0.0.1:4105",
+    });
+    await mock.post("/__reset");
+
     const message = await finalMessage(
       await context.post(`/api/notebooks/${longNotebook}/summary`, {
         data: { sourceIds: [sourceId] },
       })
     );
+    const stats = await (await mock.get("/__stats")).json();
+    expect(stats.chat).toBeGreaterThan(1);
+    await mock.dispose();
     expect(message.citations.length).toBeGreaterThan(0);
     for (const citation of message.citations) {
       expect(citation.filename).toBe("prozesse.txt");
