@@ -56,6 +56,8 @@ Alle Modelle und Dimensionen kommen aus der Umgebung, es gibt keine Defaults im 
 | `SUPABASE_SERVICE_ROLE_KEY` | Serverseitiger DB/Storage-Zugriff |
 | `AI_FEATURES_ENABLED` | Kill-Switch (`true`/`false`) |
 | `OPENAI_REASONING_EFFORT` | Optional (`minimal`/`low`/`medium`/`high`); wird nur an die API gesendet, wenn gesetzt. Für Modelle ohne Reasoning-Unterstützung leer lassen |
+| `CLIENT_IP_HEADER` | Optional: vertrauenswürdiger Header für die Client-IP (Login-Limit), z. B. `cf-connecting-ip`. Nur setzen, wenn die Infrastruktur ihn garantiert |
+| `OPENAI_JUDGE_MODEL` | Optional, nur Live-Evaluation: abweichendes Judge-Modell; ohne Angabe bewertet das geprüfte Modell sich selbst (im Report gekennzeichnet) |
 
 Validierung mit zod in einem zentralen `config`-Modul:
 
@@ -108,8 +110,8 @@ Wesentliche Punkte:
 
 - Login-Seite mit `DEMO_PASSWORD`-Abfrage. Vergleich serverseitig, timing-sicher (`crypto.timingSafeEqual`).
 - Bei Erfolg: neue Zeile in `sessions`, Cookie `session` mit Payload `sessionId.expiry.hmac` (HMAC-SHA256 über `AUTH_SECRET`). Attribute: `HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/`, Ablauf 7 Tage.
-- Logout: Cookie löschen; die Session-Daten bleiben bis zum Aufräumen bestehen (bewusste Entscheidung: erneuter Login mit demselben Cookie ist nicht möglich, da das Cookie weg ist; Daten alter Sessions sind über keine gültige Session erreichbar).
-- Login ist rate-limitiert (siehe Limits), um das Demo-Passwort nicht brute-force-bar zu machen.
+- Logout: Die Session wird **serverseitig gelöscht** (kopierte Cookies werden damit wertlos); die Löschkaskade entfernt zugleich alle Notebooks, Dateien und Verläufe der Sitzung. Die UI bestätigt das vor dem Abmelden.
+- Login ist rate-limitiert (siehe Limits), um das Demo-Passwort nicht brute-force-bar zu machen. Die Client-IP für den Limit-Key stammt nur aus einem per `CLIENT_IP_HEADER` explizit als vertrauenswürdig deklarierten Header (z. B. `cf-connecting-ip` hinter Cloudflare; bei Listen zählt das letzte, vom eigenen Proxy angehängte Element). Ohne Konfiguration teilen sich alle Clients einen Bucket; zusätzlich existiert ein globales, nicht IP-gebundenes Backstop-Limit.
 
 ### Autorisierung: das tatsächliche Schutzmodell
 
@@ -119,7 +121,7 @@ Ehrliche Beschreibung, insbesondere wegen des Service-Role-Keys:
 - Konsequenzen und Absicherung:
   1. Der Service-Role-Key existiert nur serverseitig (nie im Client-Bundle; `SUPABASE_URL`/Key ohne `NEXT_PUBLIC_`-Präfix, Lint-Regel/Test dagegen).
   2. **Jeder** Datenzugriff läuft durch eine zentrale Data-Access-Schicht (`lib/db/*`), deren Funktionen die `session_id` als Pflichtparameter führen. Es gibt keine Query-Funktion "hole Notebook per ID" ohne Session-Scope. Route Handler bauen keine eigenen Queries.
-  3. Eine Middleware prüft das Session-Cookie für alle Routen außer Login/Health; Route Handler lesen die Session-ID ausschließlich aus dem validierten Cookie, nie aus Request-Parametern.
+  3. Es gibt bewusst keine Middleware-Schicht: Jede API-Route und jede Seite prüft das Session-Cookie selbst (`requireSession`/`getSessionId`); Route Handler lesen die Session-ID ausschließlich aus dem validierten Cookie, nie aus Request-Parametern.
   4. Storage-Dateien liegen in einem **privaten Bucket**. Auslieferung nur über einen eigenen Route Handler, der die Zugehörigkeit `source → notebook → session` prüft und die Datei dann streamt (keine öffentlichen URLs; signierte URLs wären eine Alternative, aber der Proxy-Weg hält die Autorisierung an einer Stelle).
   5. Deterministische Tests decken IDOR ab: Session A darf Notebook/Quelle/Datei/Chat von Session B unter keiner Route lesen, ändern oder löschen.
 - **Grenze des Modells:** Wer den Server oder die ENV kompromittiert, hat Vollzugriff auf die Datenbank. Das ist bei einer Demo mit einem gemeinsamen Passwort akzeptiert und wird nicht als Mandantentrennung auf DB-Ebene verkauft.
@@ -293,6 +295,9 @@ Notebook-Übersicht als Startseite (Erstellen/Öffnen/Löschen). Keine mobile Op
 - Zitatvalidierung garantiert Referenz-Gültigkeit, nicht Belegtreue (wird per Eval gemessen, per UI überprüfbar gemacht).
 - Zusammenfassungen: verbesserte Abdeckung, aber keine Garantie für Vollständigkeit oder sachliche Richtigkeit (siehe 5.5).
 - Token-Zählung per Schätzung (~4 Zeichen/Token) statt exaktem Tokenizer; Budgets sind entsprechend konservativ gewählt.
+- 10-Quellen-Limit ist check-then-act: parallele Uploads können es im Extremfall um 1-2 Quellen überschreiten (Kosten über globale Upload-Limits gedeckelt).
+- Whitespace-Normalisierung und Marker-Erkennung unterscheiden keine Markdown-Code-Fences in Antworten (Darstellungs-Randfall).
+- `COOKIE_SECURE=false` (nur für lokale E2E-Läufe) würde auch in Produktion greifen; der Start warnt laut, die Produktions-`.env` setzt die Variable nicht.
 - PDF-Extraktion: nur Textebene; gescannte PDFs ohne Textebene werden mit verständlicher Fehlermeldung abgelehnt (kein OCR).
 - Keine mobile Optimierung, keine Zusammenarbeit, kein Audio, keine weiteren Studio-Funktionen.
 - HTTPS endet an Cloudflare (Flexible-Modus der bestehenden Infrastruktur).
