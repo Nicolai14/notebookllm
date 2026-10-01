@@ -51,7 +51,9 @@ describe("planSummary", () => {
     });
     expect(plan.batches).toHaveLength(2);
     expect(plan.included).toHaveLength(2);
-    expect(plan.omissions).toEqual([{ filename: "a.txt", fromLabel: "Absatz 3" }]);
+    expect(plan.omissions).toEqual([
+      { filename: "a.txt", fromLabel: "Absatz 3", entireSource: false },
+    ]);
   });
 
   it("applies the global map-call cap across sources", () => {
@@ -66,7 +68,26 @@ describe("planSummary", () => {
       maxMapCalls: 3,
     });
     expect(plan.batches).toHaveLength(3);
-    expect(plan.omissions).toEqual([{ filename: "b.txt", fromLabel: "Absatz 2" }]);
+    expect(plan.omissions).toEqual([
+      { filename: "b.txt", fromLabel: "Absatz 2", entireSource: false },
+    ]);
+  });
+
+  it("marks sources as entirely omitted when the global cap is reached first", () => {
+    const chunks = [
+      ...Array.from({ length: 2 }, (_, i) => chunk("a", i, 100, "a.txt")),
+      ...Array.from({ length: 2 }, (_, i) => chunk("b", i, 100, "b.txt")),
+    ];
+    const plan = planSummary(chunks, {
+      directTokenBudget: 100,
+      batchTokenBudget: 100,
+      maxBatchesPerSource: 10,
+      maxMapCalls: 2,
+    });
+    expect(plan.batches).toHaveLength(2);
+    expect(plan.omissions).toEqual([
+      { filename: "b.txt", fromLabel: "Absatz 1", entireSource: true },
+    ]);
   });
 
   it("keeps global markers unique and ordered across batches", () => {
@@ -92,9 +113,19 @@ describe("buildOmissionNote", () => {
   });
 
   it("names file and location of omitted content", () => {
-    const note = buildOmissionNote([{ filename: "lang.pdf", fromLabel: "Seite 42" }]);
+    const note = buildOmissionNote([
+      { filename: "lang.pdf", fromLabel: "Seite 42", entireSource: false },
+    ]);
     expect(note).toContain("lang.pdf");
     expect(note).toContain("Seite 42");
     expect(note).toContain("nicht alle Inhalte");
+  });
+
+  it("names entirely omitted sources explicitly", () => {
+    const note = buildOmissionNote([
+      { filename: "extra.txt", fromLabel: "Absatz 1", entireSource: true },
+    ]);
+    expect(note).toContain("extra.txt");
+    expect(note).toContain("vollständig ausgelassen");
   });
 });

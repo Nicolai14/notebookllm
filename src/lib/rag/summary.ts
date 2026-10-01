@@ -21,6 +21,8 @@ export interface SummaryBatch {
 export interface SummaryOmission {
   filename: string;
   fromLabel: string;
+  /** True when not a single chunk of the source made it into the summary. */
+  entireSource: boolean;
 }
 
 export interface SummaryPlan {
@@ -130,6 +132,7 @@ export function planSummary(chunks: PlanInput[], options: PlanOptions = {}): Sum
       omissions.push({
         filename,
         fromLabel: chunkLocationLabel(omittedFrom),
+        entireSource: batchesForSource === 0,
       });
     }
   }
@@ -185,8 +188,10 @@ ${partials.join("\n\n===\n\n")}`;
 /** Deterministic note about omitted content; appended server-side, never model-generated. */
 export function buildOmissionNote(omissions: SummaryOmission[]): string {
   if (omissions.length === 0) return "";
-  const lines = omissions.map(
-    (o) => `- ${o.filename}: Inhalte ab ${o.fromLabel} wurden nicht berücksichtigt.`
+  const lines = omissions.map((o) =>
+    o.entireSource
+      ? `- ${o.filename}: Diese Quelle wurde vollständig ausgelassen.`
+      : `- ${o.filename}: Inhalte ab ${o.fromLabel} wurden nicht berücksichtigt.`
   );
   return `\n\nHinweis: Wegen des Umfangslimits wurden nicht alle Inhalte einbezogen.\n${lines.join("\n")}`;
 }
