@@ -4,13 +4,13 @@ import { getConfig } from "@/lib/config";
 import { getNotebook } from "@/lib/db/notebooks";
 import { listSources } from "@/lib/db/sources";
 import { insertMessage, listMessages } from "@/lib/db/messages";
-import { AiDisabledError, ValidationError } from "@/lib/errors";
+import { AiDisabledError, AppError, ValidationError } from "@/lib/errors";
 import {
   CHAT_HISTORY_MAX_TURNS,
   MAX_OUTPUT_TOKENS,
   MAX_QUESTION_CHARS,
 } from "@/lib/limits";
-import { getOpenAI } from "@/lib/openai";
+import { getOpenAI, toAiServiceError } from "@/lib/openai";
 import { validateCitations } from "@/lib/rag/citations";
 import { buildChatSystemPrompt, NO_ANSWER_TEXT } from "@/lib/rag/prompt";
 import { retrieveChunks } from "@/lib/rag/retrieve";
@@ -88,27 +88,30 @@ export async function POST(request: Request, { params }: Params) {
             return;
           }
 
-          const completion = await getOpenAI().chat.completions.create({
-            model: config.OPENAI_CHAT_MODEL,
-            stream: true,
-            max_completion_tokens: MAX_OUTPUT_TOKENS,
-            messages: [
-              { role: "system", content: buildChatSystemPrompt(retrieved) },
-              ...history.map((m) => ({
-                role: m.role,
-                content: m.content,
-              })),
-              { role: "user", content: question },
-            ],
-          });
-
           let fullText = "";
-          for await (const part of completion) {
-            const delta = part.choices[0]?.delta?.content ?? "";
-            if (delta) {
-              fullText += delta;
-              send({ type: "delta", text: delta });
+          try {
+            const completion = await getOpenAI().chat.completions.create({
+              model: config.OPENAI_CHAT_MODEL,
+              stream: true,
+              max_completion_tokens: MAX_OUTPUT_TOKENS,
+              messages: [
+                { role: "system", content: buildChatSystemPrompt(retrieved) },
+                ...history.map((m) => ({
+                  role: m.role,
+                  content: m.content,
+                })),
+                { role: "user", content: question },
+              ],
+            });
+            for await (const part of completion) {
+              const delta = part.choices[0]?.delta?.content ?? "";
+              if (delta) {
+                fullText += delta;
+                send({ type: "delta", text: delta });
+              }
             }
+          } catch (err) {
+            throw toAiServiceError(err);
           }
 
           // Validate citations server-side; the client replaces the streamed
@@ -122,10 +125,15 @@ export async function POST(request: Request, { params }: Params) {
           });
           send({ type: "done", message: saved });
         } catch (err) {
-          console.error("chat stream error:", err);
+          if (!(err instanceof AppError)) {
+            console.error("chat stream error:", err);
+          }
           send({
             type: "error",
-            error: "Die Antwort konnte nicht erzeugt werden. Bitte erneut versuchen.",
+            error:
+              err instanceof AppError
+                ? err.message
+                : "Die Antwort konnte nicht erzeugt werden. Bitte erneut versuchen.",
           });
         } finally {
           controller.close();
