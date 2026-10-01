@@ -1,0 +1,1099 @@
+{
+  "results": [
+    {
+      "id": "14-zusammenfassung-mehrstufig",
+      "kind": "summary",
+      "durationMs": 94657,
+      "deltas": 1336,
+      "answerChars": 3952,
+      "estimatedAnswerTokens": 988,
+      "citations": [
+        {
+          "marker": 1,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 1 bis Absatz 4"
+        },
+        {
+          "marker": 2,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 5 bis Absatz 7"
+        },
+        {
+          "marker": 3,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 8 bis Absatz 10"
+        },
+        {
+          "marker": 4,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 11 bis Absatz 13"
+        },
+        {
+          "marker": 5,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 14 bis Absatz 16"
+        },
+        {
+          "marker": 6,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 17 bis Absatz 19"
+        },
+        {
+          "marker": 7,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 20 bis Absatz 22"
+        },
+        {
+          "marker": 8,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 23 bis Absatz 25"
+        },
+        {
+          "marker": 9,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 26 bis Absatz 28"
+        },
+        {
+          "marker": 10,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 29 bis Absatz 31"
+        },
+        {
+          "marker": 11,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 32 bis Absatz 34"
+        },
+        {
+          "marker": 12,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 35 bis Absatz 37"
+        },
+        {
+          "marker": 13,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 38 bis Absatz 40"
+        },
+        {
+          "marker": 14,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 41 bis Absatz 43"
+        },
+        {
+          "marker": 15,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 44 bis Absatz 46"
+        },
+        {
+          "marker": 16,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 47 bis Absatz 49"
+        },
+        {
+          "marker": 17,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 50 bis Absatz 52"
+        },
+        {
+          "marker": 18,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 53 bis Absatz 55"
+        },
+        {
+          "marker": 19,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 56 bis Absatz 58"
+        },
+        {
+          "marker": 20,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 59 bis Absatz 61"
+        },
+        {
+          "marker": 21,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 62 bis Absatz 64"
+        },
+        {
+          "marker": 22,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 65 bis Absatz 67"
+        },
+        {
+          "marker": 23,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 68 bis Absatz 70"
+        },
+        {
+          "marker": 24,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 71 bis Absatz 73"
+        },
+        {
+          "marker": 25,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 74 bis Absatz 76"
+        },
+        {
+          "marker": 26,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 77 bis Absatz 79"
+        },
+        {
+          "marker": 27,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 80 bis Absatz 82"
+        },
+        {
+          "marker": 28,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 83 bis Absatz 85"
+        },
+        {
+          "marker": 29,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 86 bis Absatz 88"
+        },
+        {
+          "marker": 30,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 89 bis Absatz 91"
+        },
+        {
+          "marker": 31,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 92 bis Absatz 94"
+        },
+        {
+          "marker": 32,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 95 bis Absatz 97"
+        },
+        {
+          "marker": 33,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 98 bis Absatz 100"
+        },
+        {
+          "marker": 34,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 101 bis Absatz 103"
+        },
+        {
+          "marker": 35,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 104 bis Absatz 106"
+        },
+        {
+          "marker": 36,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 107 bis Absatz 109"
+        },
+        {
+          "marker": 37,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 110 bis Absatz 112"
+        },
+        {
+          "marker": 38,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 113 bis Absatz 115"
+        },
+        {
+          "marker": 39,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 116 bis Absatz 118"
+        },
+        {
+          "marker": 40,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 119 bis Absatz 121"
+        },
+        {
+          "marker": 41,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 122 bis Absatz 124"
+        },
+        {
+          "marker": 42,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 125 bis Absatz 127"
+        },
+        {
+          "marker": 43,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 128 bis Absatz 130"
+        },
+        {
+          "marker": 44,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 131 bis Absatz 133"
+        },
+        {
+          "marker": 45,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 134 bis Absatz 136"
+        },
+        {
+          "marker": 46,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 137 bis Absatz 139"
+        },
+        {
+          "marker": 47,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 140 bis Absatz 142"
+        },
+        {
+          "marker": 48,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 143 bis Absatz 145"
+        }
+      ],
+      "answer": "Die Auszüge beschreiben die Prüfung der Baugruppen B1–B144 in den gleich nummerierten Kapiteln. Sie enthalten einheitliche Vorgaben für Sicherheit, Prüfverfahren, Nachprüfung und Dokumentation sowie baugruppenspezifische Angaben zu Dauer, Zuständigkeit, Toleranzklasse, Frist, Quartalsbericht und Freigabesystem. [1][2][3][4][5][6][7][8][9][10][11][12][13][14][15][16][17][18][19][20][21][22][23][24][25][26][27][28][29][30][31][32][33][34][35][36][37][38][39][40][41][42][43][44][45][46][47][48]\n\n### Aufbau und Zuordnung der Prüfunterlagen\n\n- **Kapitel 1–36:** Das „Verfahrenshandbuch Eins“ ordnet jeder Baugruppe das gleich nummerierte Verfahren, Protokollfeld, die Arbeitsanweisung und Checkliste zu; beispielsweise gehören zu B1 die Kennungen V1, P1, A1 und C1. [1][2][3][4][5][6][7][8][9][10][11][12]\n- **Kapitel 37–72:** Die gleiche Nummernzuordnung gilt für B37–B72, V37–V72, P37–P72, A37–A72 und C37–C72. [13][14][15][16][17][18][19][20][21][22][23][24]\n- **Kapitel 73–108:** Auch hier werden Baugruppe, Verfahren, Protokollfeld, Arbeitsanweisung und Checkliste über dieselbe Nummer miteinander verbunden. [25][26][27][28][29][30][31][32][33][34][35][36]\n- **Kapitel 109–144:** Die Zuordnung wird fortgeführt; beispielsweise gehören zu Kapitel 109 die Kennungen B109, V109, P109, A109 und C109. [37][38][39][40][41][42][43][44][45][46][47][48]\n\n### Sicherheit und Prüfablauf\n\n- **Vor Prüfbeginn** ist die Anlage nach der jeweiligen Checkliste freizuschalten und gegen Wiedereinschalten zu sichern. Diese Vorgabe gilt in allen vier Kapitelblöcken. [1][2][3][4][5][6][7][8][9][10][11][12][13][14][15][16][17][18][19][20][21][22][23][24][25][26][27][28][29][30][31][32][33][34][35][36][37][38][39][40][41][42][43][44][45][46][47][48]\n- Die Prüfung erfolgt mit dem jeweils zugeordneten Verfahren; Ergebnisse werden im entsprechenden Protokollfeld dokumentiert. Für Nachprüfungen ist die gleich nummerierte Arbeitsanweisung in ihrer jeweils gültigen Fassung maßgeblich. [1][2][3][4][5][6][7][8][9][10][11][12][13][14][15][16][17][18][19][20][21][22][23][24][25][26][27][28][29][30][31][32][33][34][35][36][37][38][39][40][41][42][43][44][45][46][47][48]\n\n### Prüfdauer, Zuständigkeit und Toleranzen\n\n- **Kapitel 1–36:** Die Prüfungen dauern je Baugruppe 10–16 Minuten. Zuständig sind die jeweils angegebenen Teams T1–T5; zugeordnet werden die Toleranzklassen K1–K3. Beispielsweise benötigt B1 elf Minuten und wird von T2 mit Toleranzklasse K2 geprüft. [1][2][3][4][5][6][7][8][9][10][11][12]\n- **Kapitel 37–72:** Auch hier liegen die Prüfdauern bei 10–16 Minuten, die Zuständigkeiten bei T1–T5 und die Toleranzklassen bei K1–K3. B37 ist mit zwölf Minuten, T3 und K2 angegeben. [13][14][15][16][17][18][19][20][21][22][23][24]\n- **Kapitel 73–108:** Es gelten ebenfalls baugruppenspezifische Prüfdauern von 10–16 Minuten sowie Zuordnungen zu T1–T5 und K1–K3. B73 benötigt dreizehn Minuten; zuständig ist T4, die Toleranzklasse lautet K2. [25][26][27][28][29][30][31][32][33][34][35][36]\n- **Kapitel 109–144:** Die Angaben bewegen sich ebenfalls zwischen 10 und 16 Minuten und umfassen T1–T5 sowie K1–K3. B109 ist mit vierzehn Minuten, T5 und K2 angegeben. [37][38][39][40][41][42][43][44][45][46][47][48]\n\n### Abweichungen und Nachprüfung\n\n- Abweichungen **oberhalb der jeweiligen Toleranzklasse** müssen an die Fachaufsicht gemeldet werden. Die baugruppenspezifischen Nachprüffristen betragen zwei, drei, vier oder fünf Arbeitstage. [1][2][3][4][5][6][7][8][9][10][11][12][13][14][15][16][17][18][19][20][21][22][23][24][25][26][27][28][29][30][31][32][33][34][35][36][37][38][39][40][41][42][43][44][45][46][47][48]\n- Beispiele für die Fristen: B1, B37, B73 und B109 sind innerhalb von drei Arbeitstagen nachzuprüfen; B36, B72, B108 und B144 innerhalb von zwei Arbeitstagen. [1][12][13][24][\n\nHinweis: Wegen des Umfangslimits wurden nicht alle Inhalte einbezogen.\n- verfahren-1.txt: Inhalte ab Absatz 146 bis Absatz 148 wurden nicht berücksichtigt.",
+      "checks": [
+        {
+          "name": "enthält /Umfangslimit/",
+          "method": "auto",
+          "pass": true,
+          "detail": ""
+        },
+        {
+          "name": "enthält /nicht berücksichtigt/",
+          "method": "auto",
+          "pass": true,
+          "detail": ""
+        },
+        {
+          "name": "zitiert verfahren-1.txt",
+          "method": "auto",
+          "pass": true,
+          "detail": ""
+        },
+        {
+          "name": "Zitatreferenzen technisch gültig",
+          "method": "auto",
+          "pass": true,
+          "detail": ""
+        },
+        {
+          "name": "Zusammenfassung inhaltlich korrekt",
+          "method": "ai-reviewer",
+          "pass": true,
+          "detail": "Die Zusammenfassung enthält beide Kernpunkte: die Prüfung der Baugruppen mit zugeordneten Verfahren und dokumentierten Prüfschritten sowie die Meldung von Abweichungen oberhalb der jeweiligen Toleranzklasse an die Fachaufsicht. Die im gezeigten Quelltext überprüfbaren Angaben stimmen überein, insbesondere zu B1, Sicherheitsmaßnahmen, Prüfdauern, Zuständigkeiten und Nachprüffristen. Aussagen zu späteren Kapiteln sind wegen der Kürzung nicht überprüfbar, widersprechen dem gezeigten Teil jedoch nicht und werden daher nicht als Fehler gewertet."
+        },
+        {
+          "name": "erwartete Kernpunkte abgedeckt",
+          "method": "ai-reviewer",
+          "pass": true,
+          "detail": ""
+        }
+      ],
+      "pass": true
+    },
+    {
+      "id": "15-zusammenfassung-gedeckelt",
+      "kind": "summary",
+      "durationMs": 80265,
+      "deltas": 1444,
+      "answerChars": 4522,
+      "estimatedAnswerTokens": 1131,
+      "citations": [
+        {
+          "marker": 1,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 1 bis Absatz 4"
+        },
+        {
+          "marker": 2,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 5 bis Absatz 7"
+        },
+        {
+          "marker": 3,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 8 bis Absatz 10"
+        },
+        {
+          "marker": 4,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 11 bis Absatz 13"
+        },
+        {
+          "marker": 5,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 14 bis Absatz 16"
+        },
+        {
+          "marker": 6,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 17 bis Absatz 19"
+        },
+        {
+          "marker": 7,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 20 bis Absatz 22"
+        },
+        {
+          "marker": 8,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 23 bis Absatz 25"
+        },
+        {
+          "marker": 9,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 26 bis Absatz 28"
+        },
+        {
+          "marker": 10,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 29 bis Absatz 31"
+        },
+        {
+          "marker": 11,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 32 bis Absatz 34"
+        },
+        {
+          "marker": 12,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 35 bis Absatz 37"
+        },
+        {
+          "marker": 13,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 38 bis Absatz 40"
+        },
+        {
+          "marker": 14,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 41 bis Absatz 43"
+        },
+        {
+          "marker": 15,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 44 bis Absatz 46"
+        },
+        {
+          "marker": 16,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 47 bis Absatz 49"
+        },
+        {
+          "marker": 17,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 50 bis Absatz 52"
+        },
+        {
+          "marker": 18,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 53 bis Absatz 55"
+        },
+        {
+          "marker": 19,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 56 bis Absatz 58"
+        },
+        {
+          "marker": 20,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 59 bis Absatz 61"
+        },
+        {
+          "marker": 21,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 62 bis Absatz 64"
+        },
+        {
+          "marker": 22,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 65 bis Absatz 67"
+        },
+        {
+          "marker": 23,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 68 bis Absatz 70"
+        },
+        {
+          "marker": 24,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 71 bis Absatz 73"
+        },
+        {
+          "marker": 25,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 74 bis Absatz 76"
+        },
+        {
+          "marker": 26,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 77 bis Absatz 79"
+        },
+        {
+          "marker": 27,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 80 bis Absatz 82"
+        },
+        {
+          "marker": 28,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 83 bis Absatz 85"
+        },
+        {
+          "marker": 29,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 86 bis Absatz 88"
+        },
+        {
+          "marker": 30,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 89 bis Absatz 91"
+        },
+        {
+          "marker": 31,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 92 bis Absatz 94"
+        },
+        {
+          "marker": 32,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 95 bis Absatz 97"
+        },
+        {
+          "marker": 33,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 98 bis Absatz 100"
+        },
+        {
+          "marker": 34,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 101 bis Absatz 103"
+        },
+        {
+          "marker": 35,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 104 bis Absatz 106"
+        },
+        {
+          "marker": 36,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 107 bis Absatz 109"
+        },
+        {
+          "marker": 37,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 110 bis Absatz 112"
+        },
+        {
+          "marker": 38,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 113 bis Absatz 115"
+        },
+        {
+          "marker": 39,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 116 bis Absatz 118"
+        },
+        {
+          "marker": 40,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 119 bis Absatz 121"
+        },
+        {
+          "marker": 41,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 122 bis Absatz 124"
+        },
+        {
+          "marker": 42,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 125 bis Absatz 127"
+        },
+        {
+          "marker": 43,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 128 bis Absatz 130"
+        },
+        {
+          "marker": 44,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 131 bis Absatz 133"
+        },
+        {
+          "marker": 45,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 134 bis Absatz 136"
+        },
+        {
+          "marker": 46,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 137 bis Absatz 139"
+        },
+        {
+          "marker": 47,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 140 bis Absatz 142"
+        },
+        {
+          "marker": 48,
+          "filename": "verfahren-1.txt",
+          "page_start": null,
+          "section_path": "Absatz 143 bis Absatz 145"
+        },
+        {
+          "marker": 49,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 1 bis Absatz 4"
+        },
+        {
+          "marker": 50,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 5 bis Absatz 7"
+        },
+        {
+          "marker": 51,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 8 bis Absatz 10"
+        },
+        {
+          "marker": 52,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 11 bis Absatz 13"
+        },
+        {
+          "marker": 53,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 14 bis Absatz 16"
+        },
+        {
+          "marker": 54,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 17 bis Absatz 19"
+        },
+        {
+          "marker": 55,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 20 bis Absatz 22"
+        },
+        {
+          "marker": 56,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 23 bis Absatz 25"
+        },
+        {
+          "marker": 57,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 26 bis Absatz 28"
+        },
+        {
+          "marker": 58,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 29 bis Absatz 31"
+        },
+        {
+          "marker": 59,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 32 bis Absatz 34"
+        },
+        {
+          "marker": 60,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 35 bis Absatz 37"
+        },
+        {
+          "marker": 61,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 38 bis Absatz 40"
+        },
+        {
+          "marker": 62,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 41 bis Absatz 43"
+        },
+        {
+          "marker": 63,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 44 bis Absatz 46"
+        },
+        {
+          "marker": 64,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 47 bis Absatz 49"
+        },
+        {
+          "marker": 65,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 50 bis Absatz 52"
+        },
+        {
+          "marker": 66,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 53 bis Absatz 55"
+        },
+        {
+          "marker": 67,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 56 bis Absatz 58"
+        },
+        {
+          "marker": 68,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 59 bis Absatz 61"
+        },
+        {
+          "marker": 69,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 62 bis Absatz 64"
+        },
+        {
+          "marker": 70,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 65 bis Absatz 67"
+        },
+        {
+          "marker": 71,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 68 bis Absatz 70"
+        },
+        {
+          "marker": 72,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 71 bis Absatz 73"
+        },
+        {
+          "marker": 73,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 74 bis Absatz 76"
+        },
+        {
+          "marker": 74,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 77 bis Absatz 79"
+        },
+        {
+          "marker": 75,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 80 bis Absatz 82"
+        },
+        {
+          "marker": 76,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 83 bis Absatz 85"
+        },
+        {
+          "marker": 77,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 86 bis Absatz 88"
+        },
+        {
+          "marker": 78,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 89 bis Absatz 91"
+        },
+        {
+          "marker": 79,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 92 bis Absatz 94"
+        },
+        {
+          "marker": 80,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 95 bis Absatz 97"
+        },
+        {
+          "marker": 81,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 98 bis Absatz 100"
+        },
+        {
+          "marker": 82,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 101 bis Absatz 103"
+        },
+        {
+          "marker": 83,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 104 bis Absatz 106"
+        },
+        {
+          "marker": 84,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 107 bis Absatz 109"
+        },
+        {
+          "marker": 85,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 110 bis Absatz 112"
+        },
+        {
+          "marker": 86,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 113 bis Absatz 115"
+        },
+        {
+          "marker": 87,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 116 bis Absatz 118"
+        },
+        {
+          "marker": 88,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 119 bis Absatz 121"
+        },
+        {
+          "marker": 89,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 122 bis Absatz 124"
+        },
+        {
+          "marker": 90,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 125 bis Absatz 127"
+        },
+        {
+          "marker": 91,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 128 bis Absatz 130"
+        },
+        {
+          "marker": 92,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 131 bis Absatz 133"
+        },
+        {
+          "marker": 93,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 134 bis Absatz 136"
+        },
+        {
+          "marker": 94,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 137 bis Absatz 139"
+        },
+        {
+          "marker": 95,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 140 bis Absatz 142"
+        },
+        {
+          "marker": 96,
+          "filename": "verfahren-2.txt",
+          "page_start": null,
+          "section_path": "Absatz 143 bis Absatz 145"
+        },
+        {
+          "marker": 97,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 1 bis Absatz 4"
+        },
+        {
+          "marker": 98,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 5 bis Absatz 7"
+        },
+        {
+          "marker": 99,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 8 bis Absatz 10"
+        },
+        {
+          "marker": 100,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 11 bis Absatz 13"
+        },
+        {
+          "marker": 101,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 14 bis Absatz 16"
+        },
+        {
+          "marker": 102,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 17 bis Absatz 19"
+        },
+        {
+          "marker": 103,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 20 bis Absatz 22"
+        },
+        {
+          "marker": 104,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 23 bis Absatz 25"
+        },
+        {
+          "marker": 105,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 26 bis Absatz 28"
+        },
+        {
+          "marker": 106,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 29 bis Absatz 31"
+        },
+        {
+          "marker": 107,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 32 bis Absatz 34"
+        },
+        {
+          "marker": 108,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 35 bis Absatz 37"
+        },
+        {
+          "marker": 109,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 38 bis Absatz 40"
+        },
+        {
+          "marker": 110,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 41 bis Absatz 43"
+        },
+        {
+          "marker": 111,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 44 bis Absatz 46"
+        },
+        {
+          "marker": 112,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 47 bis Absatz 49"
+        },
+        {
+          "marker": 113,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 50 bis Absatz 52"
+        },
+        {
+          "marker": 114,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 53 bis Absatz 55"
+        },
+        {
+          "marker": 115,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 56 bis Absatz 58"
+        },
+        {
+          "marker": 116,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 59 bis Absatz 61"
+        },
+        {
+          "marker": 117,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 62 bis Absatz 64"
+        },
+        {
+          "marker": 118,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 65 bis Absatz 67"
+        },
+        {
+          "marker": 119,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 68 bis Absatz 70"
+        },
+        {
+          "marker": 120,
+          "filename": "verfahren-3.txt",
+          "page_start": null,
+          "section_path": "Absatz 71 bis Absatz 73"
+        }
+      ],
+      "answer": "Die Auszüge beschreiben die Prüfung von Baugruppen in den „Verfahrenshandbüchern Eins“, „Zwei“ und „Drei“; die vorliegenden Angaben zu gleichen Kapiteln stimmen in den Prüfparametern und gemeinsamen Vorgaben überein. Sie umfassen Kapitel 1–144 für die ersten beiden Handbücher sowie Kapitel 1–72 für das dritte Handbuch. [1] [48] [49] [96] [97] [120]\n\n### Umfang und Übereinstimmung der Quellen\n\n- **Kapitel 1–36 / B1–B36:** Alle drei Handbücher enthalten dieselben Angaben zu Prüfdauer, Team, Toleranzklasse, Nachprüffrist, Quartalsbericht und Freigabesystem. [1] [2] [3] [4] [5] [6] [7] [8] [9] [10] [11] [12] [49] [50] [51] [52] [53] [54] [55] [56] [57] [58] [59] [60] [97] [98] [99] [100] [101] [102] [103] [104] [105] [106] [107] [108]\n- **Kapitel 37–72 / B37–B72:** Auch für diesen Bereich stimmen die Angaben der drei Handbücher überein. [13] [14] [15] [16] [17] [18] [19] [20] [21] [22] [23] [24] [61] [62] [63] [64] [65] [66] [67] [68] [69] [70] [71] [72] [109] [110] [111] [112] [113] [114] [115] [116] [117] [118] [119] [120]\n- **Kapitel 73–108 / B73–B108:** Die vorliegenden Angaben der Handbücher Eins und Zwei sind identisch. [25] [26] [27] [28] [29] [30] [31] [32] [33] [34] [35] [36] [73] [74] [75] [76] [77] [78] [79] [80] [81] [82] [83] [84]\n- **Kapitel 109–144 / B109–B144:** Ebenso stimmen die Angaben der Handbücher Eins und Zwei für diesen Bereich überein. [37] [38] [39] [40] [41] [42] [43] [44] [45] [46] [47] [48] [85] [86] [87] [88] [89] [90] [91] [92] [93] [94] [95] [96]\n\n### Prüfverfahren und Dokumentation\n\n- **Einheitliche Nummernzuordnung:** Baugruppe B, Verfahren V, Protokollfeld P, Arbeitsanweisung A und Checkliste C tragen jeweils dieselbe Kapitelnummer; beispielsweise gehören B1, V1, P1, A1 und C1 zusammen. Diese Zuordnung gilt durchgehend für die jeweils vorliegenden Kapitelbereiche. [1] [13] [25] [37] [49] [61] [73] [85] [97] [109]\n- **Protokollierung:** Die Prüfung wird im zugehörigen Protokollfeld dokumentiert; im Handbuch Zwei ist ausdrücklich die Dokumentation jedes Prüfschritts genannt. [49] [97]\n- **Prüfdauer und Zuständigkeit:** Die kapitelbezogenen Prüfdauern liegen zwischen 10 und 16 Minuten; als zuständige Teams werden T1 bis T5 genannt. Die konkrete Kombination ist je Baugruppe festgelegt. [1] [2] [3] [4] [5]\n\n### Sicherheit und Freigabe\n\n- **Vor Beginn:** Die Anlage ist gemäß der gleich nummerierten Checkliste freizuschalten und gegen Wiedereinschalten zu sichern. [1] [13] [25] [37] [49] [61] [73] [85] [97] [109]\n- **Nach Abschluss:** Die Schichtleitung bestätigt die Freigabe im jeweils angegebenen System. In den kapitelbezogenen Angaben erfolgt die Freigabe für ungerade Kapitel in S2 und für gerade Kapitel in S1. [1] [2] [13] [14] [25] [26] [37] [38] [49] [50] [61] [62] [73] [74] [85] [86] [97] [98] [109] [110]\n\n### Toleranzen und Nachprüfung\n\n- **Auslöser:** Abweichungen **oberhalb** der jeweiligen Toleranzklasse werden der Fachaufsicht gemeldet und innerhalb der kapitelbezogenen Frist nachgeprüft. Für die Nachprüfung gilt die zugehörige Arbeitsanweisung in ihrer jeweils gültigen Fassung. [1] [13] [25] [37] [49] [61] [73] [85] [97] [109]\n- **Toleranzklassen:** Die Einzelangaben verwenden K1, K2 und K3; die Zuordnung wiederholt sich in der Reihenfolge K2, K3, K1. [1] [2] [13] [14] [25] [26] [37] [38]\n- **Nachprüffristen:** Vorgesehen sind 2, 3, 4 oder 5 Arbeitstage. Die Fristen wiederholen sich ab Kapitel 1 in der Reihenfolge 3, 4, 5 und 2 Arbeitstage. [1] [2] [13] [14] [25] [26] [37] [38]\n\n### Berichte und Aufbewahrung\n\n- **Quartalsberichte:** Die Ergebnisse werden in den jeweils zugeordneten Bericht Q1 bis Q4 aufgenommen. Die Zuordnung wiederholt sich ab Kapitel 1 in der Reihenfolge Q2, Q3, Q4 und Q1. [1] [2] [13] [14] [25] [26] [37] [38]\n- **Aufbewahrung:** Die Ergebnisse werden fünf Jahre aufbewahrt. [1] [13] [25] [37] [49] [61] [73] [85] [97] [109]\n\n### Quellen ohne relevanten Inhalt\n\n- **Keine:** Alle vorliegenden Quellen enthalten relevante gemeinsame Vorgaben oder kapitelbezogene Prüfparameter; auch die inhaltlich übereinstimmenden Quellen sind oben ausdrücklich berücksichtigt. [1] [12] [13] [24] [25] [36] [37] [48] [49] [60]\n\nHinweis: Wegen des Umfangslimits wurden nicht alle Inhalte einbezogen.\n- verfahren-1.txt: Inhalte ab Absatz 146 bis Absatz 148 wurden nicht berücksichtigt.\n- verfahren-2.txt: Inhalte ab Absatz 146 bis Absatz 148 wurden nicht berücksichtigt.\n- verfahren-3.txt: Inhalte ab Absatz 74 bis Absatz 76 wurden nicht berücksichtigt.\n- verfahren-4.txt: Diese Quelle wurde vollständig ausgelassen.",
+      "checks": [
+        {
+          "name": "enthält /Umfangslimit/",
+          "method": "auto",
+          "pass": true,
+          "detail": ""
+        },
+        {
+          "name": "enthält /verfahren-4\\.txt.*vollständig ausgelassen/",
+          "method": "auto",
+          "pass": true,
+          "detail": ""
+        },
+        {
+          "name": "Zitatreferenzen technisch gültig",
+          "method": "auto",
+          "pass": true,
+          "detail": ""
+        }
+      ],
+      "pass": true
+    }
+  ],
+  "judgeUsage": {
+    "prompt": 4548,
+    "completion": 153,
+    "calls": 1
+  }
+}
