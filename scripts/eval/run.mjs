@@ -30,7 +30,7 @@ const judgeUsage = { prompt: 0, completion: 0, calls: 0 };
 function startServer() {
   const child = spawn("npx", ["next", "start", "-p", String(PORT)], {
     cwd: root,
-    env: { ...process.env, COOKIE_SECURE: "false" },
+    env: { ...process.env, COOKIE_SECURE: "false", ALLOW_INSECURE_TEST_COOKIES: "true" },
     stdio: ["ignore", "ignore", "inherit"],
   });
   return child;

@@ -6,15 +6,21 @@ import "server-only";
  */
 let warned = false;
 
+/**
+ * Secure by default in production. Disabling requires BOTH COOKIE_SECURE=false
+ * and the test-only ALLOW_INSECURE_TEST_COOKIES=true; without the latter the
+ * config layer refuses to start in production (src/lib/config.ts).
+ */
 export function cookieSecure(): boolean {
-  if (process.env.COOKIE_SECURE === "false") {
-    // `next start` always runs with NODE_ENV=production, so E2E needs this
-    // override; a real deployment must never set it. Warn loudly.
+  if (
+    process.env.COOKIE_SECURE === "false" &&
+    process.env.ALLOW_INSECURE_TEST_COOKIES === "true"
+  ) {
     if (!warned) {
       warned = true;
       console.warn(
-        "WARNUNG: COOKIE_SECURE=false ist gesetzt; das Session-Cookie wird OHNE " +
-          "Secure-Attribut ausgeliefert. Nur für lokale Tests zulässig."
+        "WARNUNG: Session-Cookie wird OHNE Secure-Attribut ausgeliefert " +
+          "(ALLOW_INSECURE_TEST_COOKIES). Nur für lokale Tests zulässig."
       );
     }
     return false;

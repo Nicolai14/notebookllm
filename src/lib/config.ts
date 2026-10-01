@@ -16,6 +16,7 @@ const envSchema = z.object({
   AI_FEATURES_ENABLED: z
     .enum(["true", "false"])
     .transform((v) => v === "true"),
+  COOKIE_SECURE: z.enum(["true", "false"]).optional(),
 });
 
 export type AppConfig = z.infer<typeof envSchema>;
@@ -32,6 +33,18 @@ export function getConfig(): AppConfig {
       .map((i) => `${i.path.join(".")}: ${i.message}`)
       .join("; ");
     throw new ConfigError(`Ungültige Umgebungskonfiguration: ${details}`);
+  }
+  // A production start with disabled Secure cookies is refused. Local E2E
+  // (next start also runs as NODE_ENV=production) must opt in with the
+  // deliberately loud test-only variable.
+  if (
+    process.env.NODE_ENV === "production" &&
+    result.data.COOKIE_SECURE === "false" &&
+    process.env.ALLOW_INSECURE_TEST_COOKIES !== "true"
+  ) {
+    throw new ConfigError(
+      "COOKIE_SECURE=false ist in Produktion nicht zulässig. Für lokale Tests zusätzlich ALLOW_INSECURE_TEST_COOKIES=true setzen."
+    );
   }
   cached = result.data;
   return cached;

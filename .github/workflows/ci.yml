@@ -1,0 +1,31 @@
+# Standard CI: typecheck, unit tests and production build. Every step fails the
+# pipeline on error (no pipes, no continue-on-error).
+#
+# Scope (documented on purpose):
+# - No ESLint step: the project defines no lint configuration.
+# - Integration tests (tests/integration) and Playwright E2E (tests/e2e) are
+#   NOT run here: they require an isolated Supabase test environment and must
+#   never run against production data. Run them locally via
+#   `npm run test:integration` / `npm run test:e2e` with a dedicated .env.
+# - The live evaluation (scripts/eval) performs real OpenAI calls and is
+#   explicitly excluded from CI.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - run: npm run build

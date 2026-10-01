@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    image: notebookllm:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      # Bound to localhost only: reachable exclusively through the nginx proxy.
+      - "127.0.0.1:3010:3000"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

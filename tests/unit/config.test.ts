@@ -64,4 +64,24 @@ describe("getConfig", () => {
     setEnv({ AI_FEATURES_ENABLED: "false" });
     expect(getConfig().AI_FEATURES_ENABLED).toBe(false);
   });
+
+  it("refuses a production start with COOKIE_SECURE=false", () => {
+    setEnv({ COOKIE_SECURE: "false" });
+    const env = process.env as Record<string, string | undefined>;
+    const savedNodeEnv = env.NODE_ENV;
+    const savedAllow = env.ALLOW_INSECURE_TEST_COOKIES;
+    try {
+      delete env.ALLOW_INSECURE_TEST_COOKIES;
+      env.NODE_ENV = "production";
+      expect(() => getConfig()).toThrow(/COOKIE_SECURE=false/);
+
+      resetConfigCacheForTests();
+      env.ALLOW_INSECURE_TEST_COOKIES = "true";
+      expect(() => getConfig()).not.toThrow();
+    } finally {
+      env.NODE_ENV = savedNodeEnv;
+      if (savedAllow === undefined) delete env.ALLOW_INSECURE_TEST_COOKIES;
+      else env.ALLOW_INSECURE_TEST_COOKIES = savedAllow;
+    }
+  });
 });

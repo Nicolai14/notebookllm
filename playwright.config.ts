@@ -37,6 +37,7 @@ export default defineConfig({
       env: {
         OPENAI_BASE_URL: `http://127.0.0.1:${MOCK_PORT}/v1`,
         COOKIE_SECURE: "false",
+        ALLOW_INSECURE_TEST_COOKIES: "true",
         CLIENT_IP_HEADER: "x-forwarded-for",
       },
       reuseExistingServer: false,
@@ -47,6 +48,7 @@ export default defineConfig({
       env: {
         OPENAI_BASE_URL: `http://127.0.0.1:${MOCK_PORT}/v1`,
         COOKIE_SECURE: "false",
+        ALLOW_INSECURE_TEST_COOKIES: "true",
         AI_FEATURES_ENABLED: "false",
         CLIENT_IP_HEADER: "x-forwarded-for",
       },
