@@ -55,6 +55,7 @@ Alle Modelle und Dimensionen kommen aus der Umgebung, es gibt keine Defaults im 
 | `SUPABASE_URL` | Supabase-Projekt |
 | `SUPABASE_SERVICE_ROLE_KEY` | Serverseitiger DB/Storage-Zugriff |
 | `AI_FEATURES_ENABLED` | Kill-Switch (`true`/`false`) |
+| `OPENAI_REASONING_EFFORT` | Optional (`minimal`/`low`/`medium`/`high`); wird nur an die API gesendet, wenn gesetzt. Für Modelle ohne Reasoning-Unterstützung leer lassen |
 
 Validierung mit zod in einem zentralen `config`-Modul:
 
@@ -114,7 +115,7 @@ Wesentliche Punkte:
 
 Ehrliche Beschreibung, insbesondere wegen des Service-Role-Keys:
 
-- Die Anwendung nutzt den **Supabase-Service-Role-Key**, der **RLS vollständig umgeht**. Row Level Security bietet hier also **keinen** Schutz. Die gesamte Autorisierung ist **Anwendungslogik**.
+- Die Anwendung nutzt den **Supabase-Service-Role-Key**, der **RLS vollständig umgeht**. Die gesamte Autorisierung ist daher **Anwendungslogik**. Seit Migration 002 ist RLS auf allen Tabellen dennoch **aktiviert, ohne Policies**, und die Client-Rollen (`anon`, `authenticated`) haben keine Tabellenrechte: Direkte Zugriffe über die Supabase-REST-API mit dem Publishable Key sind damit vollständig blockiert (Defense in Depth, kein Autorisierungsmodell).
 - Konsequenzen und Absicherung:
   1. Der Service-Role-Key existiert nur serverseitig (nie im Client-Bundle; `SUPABASE_URL`/Key ohne `NEXT_PUBLIC_`-Präfix, Lint-Regel/Test dagegen).
   2. **Jeder** Datenzugriff läuft durch eine zentrale Data-Access-Schicht (`lib/db/*`), deren Funktionen die `session_id` als Pflichtparameter führen. Es gibt keine Query-Funktion "hole Notebook per ID" ohne Session-Scope. Route Handler bauen keine eigenen Queries.
@@ -191,7 +192,7 @@ Die gesamte Pipeline läuft **innerhalb des Upload-Requests** und wird dreifach 
 ### 5.3 Suche
 
 - Frage → Query-Embedding (gleiches ENV-Modell, Konfig-Abgleich, siehe Abschnitt 2).
-- SQL: Cosine-Similarity über `chunks`, **immer** gefiltert auf `notebook_id = :nb AND source_id = ANY(:selectedSourceIds)`. Die Liste ausgewählter Quellen kommt vom Client, wird aber serverseitig gegen die Quellen des Notebooks (und damit der Session) validiert; eine leere Auswahl liefert eine klare Fehlermeldung statt notebook-weiter Suche.
+- SQL: Cosine-Similarity über `chunks`, **immer** gefiltert auf `notebook_id = :nb AND source_id = ANY(:selectedSourceIds)`. Die Liste ausgewählter Quellen ist im Chat-Request **Pflicht** und wird serverseitig gegen die verarbeiteten Quellen des Notebooks (und damit der Session) gefiltert; eine fehlende oder leere Auswahl liefert eine klare Fehlermeldung und bedeutet nie "alle Quellen".
 - Top-K (z. B. 12 Kandidaten), Mindest-Similarity-Schwelle, dann Kürzung aufs Token-Budget.
 - **Kein Hybrid-/Keyword-Retrieval im MVP.** Bewusste Einschränkung zugunsten der Einfachheit; als bekannte Schwäche dokumentiert (exakte Begriffe/IDs findet reine Vektorsuche schlechter).
 

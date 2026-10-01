@@ -82,6 +82,13 @@ Per initialem Auftrag (`docs/prompts/01-project-brief.md`) festgelegt:
 - Keine Antworten aus allgemeinem Modellwissen bei fehlender Quellenbasis.
 - Review-Prozess mit drei getrennten Agents; Deployment erst nach Freigabe.
 
+Mit dem Auftrag vom 2026-10-01 (`docs/prompts/03-live-check-m3-m4.md`) zusätzlich entschieden:
+
+- **Modellwahl (nur per ENV, keine Defaults im Code):** `OPENAI_CHAT_MODEL=gpt-6.1-sol`, `OPENAI_EMBEDDING_MODEL=text-embedding-3-small`, `OPENAI_EMBEDDING_DIMENSIONS=1536`.
+- Reasoning-Aufwand zunächst `low`, umgesetzt als optionale Variable `OPENAI_REASONING_EFFORT` (wird nur gesendet, wenn gesetzt; Modelle ohne Reasoning-Unterstützung erhalten den Parameter nicht).
+- Quellenauswahl ist Pflicht im Chat-Endpunkt; eine leere Auswahl bedeutet nie "alle Quellen".
+- Kein OCR für gescannte PDFs (verständliche Fehlermeldung stattdessen).
+
 Mit der Freigabe vom 2026-10-01 (`docs/prompts/02-m1-m2-go.md`) zusätzlich entschieden:
 
 - UI-Sprache Deutsch; Domain `llm.truenasserver.com`; bestehendes Supabase-Projekt und OpenAI-Zugang per lokaler `.env`.
@@ -92,7 +99,29 @@ Noch offen (siehe `docs/architecture.md`, Abschnitt 12): Eval-Budget, Session-Au
 
 ## 4. Tatsächlich erfolgte Prüfungen
 
-Stand 2026-10-01 (M1/M2), klar getrennt nach Mock und echtem OpenAI:
+### Stand nach M3/M4 (2026-10-01, nachmittags)
+
+**Ohne OpenAI-Aufrufe (deterministisch):**
+
+- `npm run test:unit`: 36 Tests grün (zusätzlich: Markdown-Überschriftenpfade inkl. Level-Reset, PDF-Extraktion mit Seitenzuordnung über pdf-lib-Fixtures, leere Seiten, Seitenlimit, defekte Dateien, Passwort-Fehlermapping).
+- `npm run test:integration`: 11 Tests grün, erneut ausgeführt nach der Sicherheits-Migration (bestätigt, dass der Service-Role-Zugriff und die neue `match_chunks`-Signatur weiter funktionieren).
+- Supabase-Advisor vor/nach Migration 002: vorher 7× ERROR `rls_disabled_in_public` und 2× WARN (`function_search_path_mutable`, `extension_in_public`); nachher nur noch INFO `rls_enabled_no_policy` (gewollt: keinerlei Policies = kein direkter Client-Zugriff). Direkter PostgREST-Zugriff mit dem Publishable Key auf `notebooks`: 401 permission denied. Befunde zu exponierten sensiblen Spalten lagen nicht vor.
+
+**Mit OpenAI-Mock:**
+
+- `npm run test:e2e`: 15 Playwright-Tests grün. Neu: PDF-Zitat trägt die korrekte Seite durch Retrieval, Validierung und Popover ("Seite 2"); PDF ohne Textebene endet mit OCR-Hinweis; PDF-Magic-Bytes-Prüfung; Markdown-Verarbeitung; Datei-Proxy nur für die eigene Session (fremde Session 404, ohne Cookie 401, Text immer als `text/plain` mit `nosniff`); Quellenauswahl schränkt Zitate nachweislich ein; leere/fremde Auswahl → 400.
+
+**Gegen das echte OpenAI (gpt-6.1-sol, text-embedding-3-small, reasoning_effort=low):**
+
+1. **Echter M2-Durchlauf:** TXT-Upload (echte Embeddings, Status `ready`), beantwortbare Frage → Antwort in 57 Stream-Deltas, Zitat `[1]` auf `heizwerk.txt`; die gespeicherte Passage enthält die beiden Aussagen der Antwort ("maximal 72 Stunden", "jährlich im Juli") und belegt sie damit tatsächlich. Unbeantwortbare Frage (Relativitätstheorie) → fester Keine-Antwort-Text ohne Modellaufruf, keine Zitate.
+2. **Zwei-Quellen-Durchlauf (M3/M4):** PDF (2 Seiten, echte Embeddings, `page_count=2`) + TXT. Frage zum Wechselrichter mit beiden Quellen → korrekte Antwort mit Zitat `solar.pdf, Seite 2` (richtige Seitenzuordnung). Gleiche Frage mit abgewähltem PDF → Modell erklärt, dass die Auszüge dazu nichts enthalten, zitiert ausschließlich `heizwerk.txt`; leere Auswahl → 400. Die Auswahl schränkt das Retrieval damit nachvollziehbar ein.
+3. **Beobachtung:** Bei geänderter Quellenauswahl innerhalb desselben Verlaufs bezog sich das Modell auf seine frühere (damals belegte) Antwort ("Meine vorherige Antwort war daher nicht belegt"). Ursache: Der Verlauf wandert mit, die Auszüge nicht. Kein Fehler, aber ein Kandidat für die Live-Evaluation in M7.
+
+Diese Durchläufe ersetzen ausdrücklich nicht die Live-Evaluation aus M7 (Datenset, getrennte Retrieval-/Antwortmetriken).
+
+**Konfigurationsabgleich:** `embedding_config` (text-embedding-3-small, 1536) = ENV = `vector(1536)`-Spalte; das Embedding-Modell wurde nicht geändert, daher war keine Re-Indexierung nötig. Test-Altdaten (15 Sessions aus M1/M2-Läufen) wurden vollständig entfernt (DB-Kaskade + Storage).
+
+### Stand nach M1/M2 (2026-10-01, vormittags)
 
 **Ohne OpenAI-Aufrufe (deterministisch):**
 
