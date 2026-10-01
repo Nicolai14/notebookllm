@@ -138,27 +138,37 @@ export async function POST(request: Request, { params }: Params) {
             finalPrompt = buildSummaryDirectPrompt(plan.included);
           } else {
             // Bounded map phase (no streaming), then a streamed reduce call.
+            const runMapCall = async (batch: (typeof plan.batches)[number]) => {
+              const completion = await openai.chat.completions.create({
+                model: config.OPENAI_CHAT_MODEL,
+                max_completion_tokens: SUMMARY_MAP_OUTPUT_TOKENS,
+                ...(config.OPENAI_REASONING_EFFORT
+                  ? { reasoning_effort: config.OPENAI_REASONING_EFFORT }
+                  : {}),
+                messages: [
+                  {
+                    role: "user",
+                    content: buildSummaryMapPrompt(batch.filename, batch.chunks),
+                  },
+                ],
+              });
+              const choice = completion.choices[0];
+              if (choice?.finish_reason === "length") {
+                console.warn(`summary map call truncated (batch ${batch.filename})`);
+              }
+              return choice?.message?.content ?? "";
+            };
             const partials = await Promise.all(
               plan.batches.map(async (batch) => {
                 try {
-                  const completion = await openai.chat.completions.create({
-                    model: config.OPENAI_CHAT_MODEL,
-                    max_completion_tokens: SUMMARY_MAP_OUTPUT_TOKENS,
-                    ...(config.OPENAI_REASONING_EFFORT
-                      ? { reasoning_effort: config.OPENAI_REASONING_EFFORT }
-                      : {}),
-                    messages: [
-                      {
-                        role: "user",
-                        content: buildSummaryMapPrompt(batch.filename, batch.chunks),
-                      },
-                    ],
-                  });
-                  const choice = completion.choices[0];
-                  if (choice?.finish_reason === "length") {
-                    console.warn(`summary map call truncated (batch ${batch.filename})`);
+                  let text = await runMapCall(batch);
+                  // Reasoning models occasionally burn the whole completion
+                  // budget on reasoning and return no content: retry once.
+                  if (text.trim().length === 0) {
+                    console.warn(`summary map call empty, retrying (${batch.filename})`);
+                    text = await runMapCall(batch);
                   }
-                  return { batch, text: choice?.message?.content ?? "" };
+                  return { batch, text };
                 } catch (err) {
                   throw toAiServiceError(err);
                 }

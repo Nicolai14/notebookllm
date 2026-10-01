@@ -278,7 +278,14 @@ try {
 
   const notebooks = new Map(); // group -> { id, sourceIdByName }
 
-  for (const testCase of CASES) {
+  // Optional case filter for targeted re-runs, e.g. `node run.mjs 14 15`.
+  const filters = process.argv.slice(2);
+  const selectedCases =
+    filters.length > 0
+      ? CASES.filter((c) => filters.some((f) => c.id.startsWith(f)))
+      : CASES;
+
+  for (const testCase of selectedCases) {
     process.stdout.write(`case ${testCase.id} ...\n`);
     let outcome;
     try {

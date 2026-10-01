@@ -28,8 +28,9 @@ export const SUMMARY_BATCH_TOKEN_BUDGET = 6_000;
 export const SUMMARY_MAX_BATCHES_PER_SOURCE = 4;
 export const SUMMARY_MAX_MAP_CALLS = 10;
 // Generous because reasoning tokens count against the completion budget; a
-// too-small value yields empty map results on reasoning models.
-export const SUMMARY_MAP_OUTPUT_TOKENS = 1_500;
+// too-small value yields empty map results on reasoning models (observed live
+// with 700 and intermittently with 1500 at reasoning_effort=low).
+export const SUMMARY_MAP_OUTPUT_TOKENS = 3_000;
 
 // Durable rate limits (fixed window, stored in Postgres). The *_GLOBAL
 // variants are backstops without IP/session in the key: they cap the total
