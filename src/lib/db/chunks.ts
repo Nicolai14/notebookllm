@@ -2,6 +2,26 @@ import "server-only";
 import { getDb } from "./client";
 import type { ChunkInsert, MatchedChunk } from "./types";
 
+/**
+ * All chunks of the given sources in document order (for summaries, not
+ * similarity search). Callers must only pass session-validated source ids.
+ */
+export async function listChunksBySources(
+  notebookId: string,
+  sourceIds: string[]
+): Promise<Omit<MatchedChunk, "similarity">[]> {
+  if (sourceIds.length === 0) return [];
+  const { data, error } = await getDb()
+    .from("chunks")
+    .select("id, source_id, chunk_index, content, page_start, page_end, section_path")
+    .eq("notebook_id", notebookId)
+    .in("source_id", sourceIds)
+    .order("source_id", { ascending: true })
+    .order("chunk_index", { ascending: true });
+  if (error) throw error;
+  return data;
+}
+
 export async function insertChunks(chunks: ChunkInsert[]): Promise<void> {
   if (chunks.length === 0) return;
   const { error } = await getDb().from("chunks").insert(chunks);

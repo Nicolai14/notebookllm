@@ -50,10 +50,18 @@ test("Upload bis anklickbares Zitat", async ({ page }) => {
     "da in diesem Monat der Wärmebedarf am geringsten ist"
   );
 
+  // Studio: create a summary for the selected sources and open its citation.
+  const studio = page.locator("aside").filter({ hasText: "Studio" });
+  await studio.getByRole("button", { name: /Zusammenfassung erstellen/ }).click();
+  await expect(studio.getByText(/Kernpunkt/).first()).toBeVisible({ timeout: 30_000 });
+  const studioChip = studio.getByRole("button", { name: /^Quelle 1:/ });
+  await expect(studioChip).toBeVisible();
+  await expect(studio.getByText("[77]")).toHaveCount(0);
+
   // History survives a reload, including the citation chip.
   await page.reload();
   await expect(page.getByText(/Die Wartung der Biomassekessel erfolgt/)).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Quelle 1:/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Quelle 1:/ }).first()).toBeVisible();
 
   // Cleanup: delete the notebook (cascade).
   page.on("dialog", (dialog) => dialog.accept());

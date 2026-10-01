@@ -4,6 +4,17 @@ export interface RetrievedChunkWithMeta extends MatchedChunk {
   filename: string;
 }
 
+/** Minimum shape a chunk needs to back a validated citation. */
+export interface CitableChunk {
+  id: string;
+  source_id: string;
+  content: string;
+  page_start: number | null;
+  page_end: number | null;
+  section_path: string | null;
+  filename: string;
+}
+
 export interface ValidatedAnswer {
   content: string;
   citations: Citation[];
@@ -17,7 +28,7 @@ export interface ValidatedAnswer {
  */
 export function validateCitations(
   modelText: string,
-  retrieved: RetrievedChunkWithMeta[]
+  retrieved: CitableChunk[]
 ): ValidatedAnswer {
   const used = new Set<number>();
 

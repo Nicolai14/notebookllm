@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, apiFetch } from "@/lib/client/api";
 import { SourcesPanel } from "@/components/sources-panel";
 import { ChatPanel } from "@/components/chat-panel";
+import { StudioPanel } from "@/components/studio-panel";
 import type { SourceRow } from "@/lib/db/types";
 
 export function Workspace({ notebookId }: { notebookId: string }) {
@@ -11,6 +12,7 @@ export function Workspace({ notebookId }: { notebookId: string }) {
   const [sourcesError, setSourcesError] = useState<string | null>(null);
   // Newly processed sources are selected by default; deselection is sticky.
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [reloadToken, setReloadToken] = useState(0);
   const knownIds = useRef<Set<string>>(new Set());
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -80,7 +82,7 @@ export function Workspace({ notebookId }: { notebookId: string }) {
   const existingSourceIds = new Set((sources ?? []).map((s) => s.id));
 
   return (
-    <div className="grid min-h-0 flex-1 grid-cols-[320px_1fr_260px]">
+    <div className="grid min-h-0 flex-1 grid-cols-[320px_1fr_300px]">
       <SourcesPanel
         notebookId={notebookId}
         sources={sources}
@@ -94,18 +96,14 @@ export function Workspace({ notebookId }: { notebookId: string }) {
         readySourceCount={readyCount}
         selectedSourceIds={[...selectedIds]}
         existingSourceIds={existingSourceIds}
+        reloadToken={reloadToken}
       />
-      <aside className="flex min-h-0 flex-col border-l border-border bg-surface">
-        <div className="border-b border-border px-4 py-3">
-          <h2 className="text-sm font-semibold">Studio</h2>
-        </div>
-        <div className="px-4 py-3 text-sm text-muted-foreground">
-          <p>
-            Die strukturierte Zusammenfassung der ausgewählten Quellen folgt im
-            nächsten Meilenstein.
-          </p>
-        </div>
-      </aside>
+      <StudioPanel
+        notebookId={notebookId}
+        selectedSourceIds={[...selectedIds]}
+        existingSourceIds={existingSourceIds}
+        onCompleted={() => setReloadToken((v) => v + 1)}
+      />
     </div>
   );
 }

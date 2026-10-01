@@ -20,6 +20,19 @@ export const MAX_QUESTION_CHARS = 2_000;
 export const MAX_NOTEBOOK_TITLE_CHARS = 120;
 export const EMBEDDING_BATCH_SIZE = 64;
 
+// Summary (M5): short selections are summarized in one call; longer ones use a
+// bounded multi-stage pass. Hard caps keep model calls and runtime bounded.
+export const SUMMARY_DIRECT_TOKEN_BUDGET = 8_000;
+export const SUMMARY_BATCH_TOKEN_BUDGET = 6_000;
+export const SUMMARY_MAX_BATCHES_PER_SOURCE = 4;
+export const SUMMARY_MAX_MAP_CALLS = 10;
+export const SUMMARY_MAP_OUTPUT_TOKENS = 700;
+
+// Durable rate limits (fixed window, stored in Postgres).
+export const RATE_LIMIT_LOGIN = { windowSeconds: 15 * 60, max: 10 };
+export const RATE_LIMIT_AI = { windowSeconds: 60 * 60, max: 60 };
+export const RATE_LIMIT_UPLOAD = { windowSeconds: 24 * 60 * 60, max: 30 };
+
 export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export function estimateTokens(text: string): number {

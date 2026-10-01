@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, apiFetch } from "@/lib/client/api";
 import { Button } from "@/components/ui/button";
-import { CitationChip } from "@/components/citation-chip";
-import type { Citation, MessageRow } from "@/lib/db/types";
+import { AnswerText } from "@/components/answer-text";
+import type { MessageRow } from "@/lib/db/types";
 
 interface StreamEvent {
   type: "delta" | "done" | "error";
@@ -18,11 +18,13 @@ export function ChatPanel({
   readySourceCount,
   selectedSourceIds,
   existingSourceIds,
+  reloadToken,
 }: {
   notebookId: string;
   readySourceCount: number;
   selectedSourceIds: string[];
   existingSourceIds: Set<string>;
+  reloadToken: number;
 }) {
   const [messages, setMessages] = useState<MessageRow[] | null>(null);
   const [question, setQuestion] = useState("");
@@ -46,7 +48,7 @@ export function ChatPanel({
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, reloadToken]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
@@ -232,40 +234,3 @@ function MessageBubble({
   );
 }
 
-/**
- * Renders validated answer text; [n] markers become clickable citation chips.
- * Text is rendered as plain text (React escaping), never as HTML.
- */
-function AnswerText({
-  content,
-  citations,
-  existingSourceIds,
-}: {
-  content: string;
-  citations: Citation[];
-  existingSourceIds: Set<string>;
-}) {
-  const byMarker = new Map(citations.map((c) => [c.marker, c]));
-  const parts = content.split(/\[(\d{1,4})\]/g);
-
-  return (
-    <span className="whitespace-pre-wrap">
-      {parts.map((part, index) => {
-        if (index % 2 === 1) {
-          const citation = byMarker.get(Number(part));
-          if (citation) {
-            return (
-              <CitationChip
-                key={index}
-                citation={citation}
-                sourceDeleted={!existingSourceIds.has(citation.source_id)}
-              />
-            );
-          }
-          return <span key={index}>[{part}]</span>;
-        }
-        return <span key={index}>{part}</span>;
-      })}
-    </span>
-  );
-}
