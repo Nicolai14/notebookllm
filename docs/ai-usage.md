@@ -2,7 +2,7 @@
 
 Dieses Dokument trennt klar: (1) die wichtigsten Prompts der Anwendung, (2) Vorschläge des Assistenten, (3) Entscheidungen des Auftraggebers, (4) tatsächlich erfolgte Prüfungen. Es wird über die Projektlaufzeit fortgeschrieben.
 
-Stand: 2026-10-01, nach Umsetzung von M1 und M2. Der Chat-Systemprompt aus 1.1 ist implementiert (`src/lib/rag/prompt.ts`); 1.2 und 1.3 bleiben Entwürfe für M5.
+Stand: 2026-10-01, nach Umsetzung von M1 bis M6. Der Chat-Systemprompt aus 1.1 ist implementiert (`src/lib/rag/prompt.ts`) und seit M6 um eine Regel ergänzt: Der Gesprächsverlauf dient nur der Einordnung, frühere Antworten sind keine Quellen; zusätzlich werden alte `[n]`-Marker aus dem Verlauf entfernt, bevor er an das Modell geht. Die Zusammenfassungs-Prompts aus 1.2/1.3 sind in leicht erweiterter Form implementiert (`src/lib/rag/summary.ts`: direkter Pfad, Map- und Reduce-Prompt; Auslassungshinweise werden deterministisch serverseitig angehängt, nicht vom Modell formuliert).
 
 ## 1. Anwendungs-Prompts (Entwurf)
 
@@ -89,6 +89,13 @@ Mit dem Auftrag vom 2026-10-01 (`docs/prompts/03-live-check-m3-m4.md`) zusätzli
 - Quellenauswahl ist Pflicht im Chat-Endpunkt; eine leere Auswahl bedeutet nie "alle Quellen".
 - Kein OCR für gescannte PDFs (verständliche Fehlermeldung stattdessen).
 
+Mit dem Auftrag vom 2026-10-01 (`docs/prompts/04-m5-m6.md`) zusätzlich entschieden:
+
+- Zusammenfassung über den gesamten Text der Auswahl (kein Top-K); kurze Auswahl direkt, lange begrenzt mehrstufig; keine Vollständigkeits- oder Richtigkeitsgarantie (UI deklariert das).
+- Rate-Limits in Postgres mit atomarer Zählung; 429 mit Retry-After; gesperrte Requests erreichen OpenAI nicht. Eine Zusammenfassung zählt als eine KI-Aktion; die Zahl der internen Modellaufrufe ist über harte Batch-Obergrenzen gedeckelt.
+- Login-Limit zählt jeden Versuch pro IP atomar; ein erfolgreicher Login setzt den Zähler zurück, während einer Sperre wird auch das korrekte Passwort abgewiesen.
+- Verlauf ist Kontext, kein Beleg: Prompt-Regel plus Entfernen alter Zitatmarker aus dem Verlauf; der Fall wurde in das M7-Evaluationsdatenset aufgenommen.
+
 Mit der Freigabe vom 2026-10-01 (`docs/prompts/02-m1-m2-go.md`) zusätzlich entschieden:
 
 - UI-Sprache Deutsch; Domain `llm.truenasserver.com`; bestehendes Supabase-Projekt und OpenAI-Zugang per lokaler `.env`.
@@ -98,6 +105,22 @@ Mit der Freigabe vom 2026-10-01 (`docs/prompts/02-m1-m2-go.md`) zusätzlich ents
 Noch offen (siehe `docs/architecture.md`, Abschnitt 12): Eval-Budget, Session-Aufräumen.
 
 ## 4. Tatsächlich erfolgte Prüfungen
+
+### Stand nach M5/M6 (2026-10-01, abends)
+
+**Ohne OpenAI-Aufrufe (deterministisch):**
+
+- `npm run test:unit`: 43 Tests grün. Neu: Zusammenfassungsplanung (direkter Pfad unter dem Budget, Batch-Budget, Batch-Obergrenzen pro Quelle und global, explizite Auslassungen mit Fundstelle, global eindeutige Marker, deterministischer Auslassungshinweis).
+- `npm run test:integration`: 15 Tests grün. Neu: `rate_limit_hit` erlaubt exakt bis zum Limit und lehnt danach mit Retry-Hinweis ab; Fenster-Reset nach Ablauf; **20 parallele Anfragen gegen Limit 10 → exakt 10 erlaubt** (Atomaritätsnachweis über die Postgres-Zeilensperre); Reset-Funktion.
+
+**Mit OpenAI-Mock:**
+
+- `npm run test:e2e`: 25 Playwright-Tests grün. Neu: Zusammenfassung direkter Pfad (beide Quellen referenziert, erfundener Marker `[77]` entfernt, Ergebnis im Verlauf persistiert), Auswahl beschränkt Zusammenfassung, leere/fehlende Auswahl 400, fremde Session 404, **mehrstufiger Pfad** mit ~10k-Token-Quelle; Studio-Panel im Browser (Erstellen, Zitat-Chip); **Kill-Switch** gegen eine eigene Instanz mit `AI_FEATURES_ENABLED=false` (Chat/Zusammenfassung 503, Upload endet kontrolliert in `error`, Verwaltung funktioniert, Mock-Zähler beweist: **null OpenAI-Aufrufe**); **Rate-Limits** (vorab gesetzter Zähler → Chat und Zusammenfassung 429 mit `Retry-After`, Mock-Zähler beweist null OpenAI-Aufrufe, unter dem Limit wieder 200; Login-Sperre nach 10 Fehlversuchen pro IP, auch für das korrekte Passwort).
+
+**Gegen das echte OpenAI (gpt-6.1-sol, reasoning_effort=low):**
+
+1. **Zusammenfassungsdurchlauf:** Zwei echte Quellen (heizwerk.txt, solarpark.txt), direkter Pfad, gestreamt (416 Deltas). Alle Aussagen der strukturierten Zusammenfassung wurden manuell gegen die Originaldateien geprüft: sämtliche Zahlen (1.800 Haushalte, 2×4,2 MW, 6 MW, 120 m³, 72 h, Rufnummer 440, 15 Minuten, 12.400 Module, 8 ha, 5,6 MWp, April/September) sind korrekt und den richtigen Quellen zugeordnet; Zitate `[1]`/`[2]` zeigen auf beide Dateien.
+2. **Quellenwechsel-Szenario:** Frage zum Gaskessel mit `heizwerk.txt` → korrekte Antwort ("maximal 72 Stunden", Zitat heizwerk.txt). Danach dieselbe Frage mit abgewählter belegender Quelle (nur `solarpark.txt`): Das Modell übernimmt die 72 Stunden **nicht** aus dem Verlauf, sondern antwortet "lässt sich aus dem aktuellen Auszug nicht beantworten". Der Fix (Prompt-Regel 5 plus Entfernen alter `[n]`-Marker aus dem Verlauf) wirkt in diesem Durchlauf; systematische Messung folgt in der M7-Evaluation, in deren Datenset der Fall aufgenommen wurde.
 
 ### Stand nach M3/M4 (2026-10-01, nachmittags)
 

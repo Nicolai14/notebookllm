@@ -2,7 +2,7 @@
 
 Ein fokussierter NotebookLM-Klon als Desktop-Webanwendung: Dokumente hochladen, Fragen zu diesen Quellen stellen, Antworten mit anklickbaren, serverseitig validierten Quellenangaben erhalten.
 
-Stand: Meilenstein M4 (PDF/TXT/Markdown-Upload mit Seiten- bzw. Abschnittszuordnung, Datei-Ansicht, Chat mit Streaming, validierten Zitaten und verpflichtender Quellenauswahl). Zusammenfassungen, Rate-Limits und Live-Evaluation folgen gemäß `docs/implementation-plan.md`.
+Stand: Meilenstein M6 (PDF/TXT/Markdown-Upload mit Seiten- bzw. Abschnittszuordnung, Datei-Ansicht, Chat mit Streaming, validierten Zitaten und verpflichtender Quellenauswahl, strukturierte Zusammenfassungen im Studio, dauerhafte Rate-Limits, Kill-Switch). Live-Evaluation, Reviews und Deployment folgen gemäß `docs/implementation-plan.md`.
 
 ## Stack
 
