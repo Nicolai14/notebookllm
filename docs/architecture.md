@@ -271,8 +271,8 @@ Notebook-Übersicht als Startseite (Erstellen/Öffnen/Löschen). Keine mobile Op
 
 - **Build:** Next.js `output: "standalone"`, Multi-Stage-Dockerfile, Non-Root-User.
 - **Compose:** ein Service, `restart: unless-stopped`, Healthcheck auf `/api/health`, ENV per `.env` (nicht committed), Log-Rotation.
-- **Netz:** Nginx-Vhost auf Port 80 → Container-Port; Cloudflare-Subdomain proxied auf 45.137.68.43. **Ehrlich zur HTTPS-Lage:** Cloudflare "Flexible" heißt HTTPS zwischen Browser und Cloudflare, HTTP zwischen Cloudflare und Origin. Das `Secure`-Cookie funktioniert (Browser sieht HTTPS); die Origin-Strecke ist unverschlüsselt und wird als bekannte Einschränkung der bestehenden Server-Konfiguration dokumentiert, nicht verschwiegen.
-- Bestehende Dienste/Vhosts/DNS bleiben unangetastet; die Subdomain wird vor Anlage auf Kollisionen geprüft.
+- **Netz (umgesetzt in M9):** Cloudflare-Subdomain `llm.truenasserver.com` (proxied) → Nginx-Vhost mit TLS (Let's-Encrypt-Zertifikat via DNS-01, Auto-Renewal durch acme.sh) → Container auf `127.0.0.1:3010`. Der SSL-Modus ist per Configuration Rule **nur für diesen Hostnamen** auf Full (strict) gesetzt. Der Vhost akzeptiert ausschließlich Verbindungen, deren TCP-Quelle eine Cloudflare-Edge ist (geo-Prüfung über `$realip_remote_addr`, da ein bestehender Vhost `real_ip` global aktiviert); direkte Origin-Requests, auch mit gefälschtem `CF-Connecting-IP`, werden mit 403 abgewiesen. Der App-Port ist nur auf localhost gebunden.
+- Bestehende Dienste/Vhosts/DNS-Einträge bleiben unangetastet; alle Regeln (Vhost, geo-Variable, DNS, Configuration Rule) sind auf dieses Projekt beschränkt.
 - Supabase: Cloud-Projekt (Free Tier reicht für die Demo) statt Self-Hosting; Self-Hosting von Supabase wäre erheblicher Betriebsaufwand ohne Demo-Nutzen. **Offene Frage** (siehe unten), falls ein bestehendes Projekt genutzt werden soll.
 
 ## 10. Wesentliche Entscheidungen (Kurzbegründung)
@@ -300,7 +300,7 @@ Notebook-Übersicht als Startseite (Erstellen/Öffnen/Löschen). Keine mobile Op
 - `COOKIE_SECURE=false` (nur für lokale E2E-Läufe) würde auch in Produktion greifen; der Start warnt laut, die Produktions-`.env` setzt die Variable nicht.
 - PDF-Extraktion: nur Textebene; gescannte PDFs ohne Textebene werden mit verständlicher Fehlermeldung abgelehnt (kein OCR).
 - Keine mobile Optimierung, keine Zusammenarbeit, kein Audio, keine weiteren Studio-Funktionen.
-- HTTPS endet an Cloudflare (Flexible-Modus der bestehenden Infrastruktur).
+- Produktionszugriff ausschließlich über Cloudflare; bei einem Ausfall des Cloudflare-Proxys ist die Demo nicht erreichbar (bewusster Schutz-Kompromiss).
 - Kein automatisches Re-Embedding bei Modellwechsel (bewusst manuell per Skript).
 
 ## 12. Offene Fragen

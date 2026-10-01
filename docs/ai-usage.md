@@ -106,6 +106,26 @@ Noch offen (siehe `docs/architecture.md`, Abschnitt 12): Eval-Budget, Session-Au
 
 ## 4. Tatsächlich erfolgte Prüfungen
 
+### Stand nach M9, Projektabschluss (2026-10-01)
+
+**Finale Evaluation (echte OpenAI-Aufrufe, finaler Code und finale Konfiguration): 19/19 Fälle bestanden** (`docs/eval/report-2026-10-01-1407.md`). Die früheren Läufe (12/17, 18/19, Nachtest 2/2) bleiben unverändert dokumentiert. Prüfmethoden weiterhin als "auto" bzw. "ai-reviewer" gekennzeichnet; der AI-Reviewer ist das geprüfte Modell selbst (Selbstbewertung, im Report ausgewiesen).
+
+**Deterministisch vor dem Deployment:** 52 Unit-Tests (neu: Produktions-Guard verweigert Start mit `COOKIE_SECURE=false` ohne Test-Opt-in), Typecheck, Build und 30 Playwright-Tests grün.
+
+**Live-Prüfung auf https://llm.truenasserver.com (eigene Testsession, echte OpenAI-Aufrufe):**
+
+- Falsches Passwort 401; ohne Cookie 401; Login setzt `Secure; HttpOnly; SameSite=lax`.
+- Zwei Uploads (TXT) → `ready`; Frage → korrekte Antwort mit Zitat und Originalpassage; Quellenauswahl schränkt nachweislich ein (abgewählte Quelle: begründete Verweigerung); Zusammenfassung zitiert beide Quellen.
+- **Streaming durch Cloudflare + Nginx verifiziert:** Chat 29 Deltas (erstes nach 3,4 s, letztes nach 3,8 s), Zusammenfassung 345 Deltas über ~4,8 s; also echte progressive Auslieferung, kein Puffern.
+- Datei-Proxy: eigene Session 200 (`text/plain`), fremde Session 404; IDOR auf Notebook fremder Session 404.
+- Container-Neustart: nach `docker compose restart` wieder `healthy`; Session-Cookie und Daten blieben gültig.
+- Logout: kopiertes Cookie danach 401 (serverseitige Invalidierung).
+- Login-Limit: 10 Fehlversuche 401, der 11. **429**; der Rate-Limit-Key in der DB lautete `login:<echte Egress-IP>`, d. h. `CLIENT_IP_HEADER=cf-connecting-ip` greift. Requests mit selbst gesetztem `CF-Connecting-IP`-Header werden bereits von Cloudflare mit 403 abgewiesen; direkte Origin-Zugriffe (Port 80/443, auch mit gefälschtem Header) blockt der Nginx-Vhost mit 403 (geo-Prüfung der TCP-Quelle gegen Cloudflare-Ranges). Test-Keys wurden anschließend entfernt.
+
+**Infrastruktur-Prüfungen:** Cloudflare-Zone `truenasserver.com` per API verifiziert; A-Record `llm` (proxied) und Configuration Rule "Full (strict) nur für llm.truenasserver.com" angelegt; Let's-Encrypt-Zertifikat via DNS-01 ausgestellt (acme.sh, Auto-Renewal); `nginx -t` vor jedem Reload; Healthcheck des Containers (`healthy`). Bestehende Vhosts, DNS-Einträge und Dienste wurden nicht verändert.
+
+**CI:** GitHub-Actions-Workflow (Typecheck, Unit-Tests, Build). Bewusst ausgeschlossen und dokumentiert: Integrations-/E2E-Tests (brauchen isolierte Testumgebung, keine Tests gegen Produktionsdaten) und die Live-Evaluation (echte OpenAI-Aufrufe). Es existiert keine Lint-Konfiguration, daher kein Lint-Schritt.
+
 ### Stand nach M7/M8 (2026-10-01)
 
 **M7, Live-Evaluation (echte OpenAI-Aufrufe, gpt-6.1-sol, reasoning_effort=low):**
