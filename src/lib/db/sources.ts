@@ -2,6 +2,7 @@ import "server-only";
 import { getDb, STORAGE_BUCKET } from "./client";
 import { getNotebook } from "./notebooks";
 import { NotFoundError } from "@/lib/errors";
+import { isUuid } from "@/lib/uuid";
 import { MAX_PROCESSING_MS } from "@/lib/limits";
 import type { SourceRow, SourceStatus } from "./types";
 
@@ -87,6 +88,7 @@ export async function getSource(
   sessionId: string,
   sourceId: string
 ): Promise<SourceRow> {
+  if (!isUuid(sourceId)) throw new NotFoundError("Quelle nicht gefunden.");
   const { data, error } = await getDb()
     .from("sources")
     .select("*, notebooks!inner(session_id)")

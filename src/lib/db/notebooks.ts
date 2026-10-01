@@ -1,6 +1,7 @@
 import "server-only";
 import { getDb, STORAGE_BUCKET } from "./client";
 import { NotFoundError } from "@/lib/errors";
+import { isUuid } from "@/lib/uuid";
 import type { NotebookRow } from "./types";
 
 export async function listNotebooks(sessionId: string): Promise<NotebookRow[]> {
@@ -30,6 +31,7 @@ export async function getNotebook(
   sessionId: string,
   notebookId: string
 ): Promise<NotebookRow> {
+  if (!isUuid(notebookId)) throw new NotFoundError("Notebook nicht gefunden.");
   const { data, error } = await getDb()
     .from("notebooks")
     .select("*")

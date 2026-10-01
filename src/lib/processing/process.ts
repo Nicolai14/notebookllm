@@ -1,5 +1,6 @@
 import "server-only";
-import { AppError, ValidationError } from "@/lib/errors";
+import { getConfig } from "@/lib/config";
+import { AiDisabledError, AppError, ValidationError } from "@/lib/errors";
 import { MAX_EXTRACTED_TOKENS, MAX_PROCESSING_MS, estimateTokens } from "@/lib/limits";
 import { embedTexts } from "@/lib/openai";
 import { insertChunks } from "@/lib/db/chunks";
@@ -34,6 +35,7 @@ export async function processSource(source: SourceRow, file: Buffer): Promise<So
 }
 
 async function runPipeline(source: SourceRow, file: Buffer): Promise<void> {
+  if (!getConfig().AI_FEATURES_ENABLED) throw new AiDisabledError();
   await ensureEmbeddingConfigMatches();
 
   let units: ExtractedUnit[];
