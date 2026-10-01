@@ -11,6 +11,7 @@ import {
   MAX_OUTPUT_TOKENS,
   MAX_QUESTION_CHARS,
   RATE_LIMIT_AI,
+  RATE_LIMIT_AI_GLOBAL,
 } from "@/lib/limits";
 import { enforceRateLimit } from "@/lib/db/rateLimits";
 import { getOpenAI, toAiServiceError } from "@/lib/openai";
@@ -69,12 +70,21 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     // Counted before any OpenAI call (the question embedding is the first);
-    // rejected requests must not reach the API.
+    // rejected requests must not reach the API. The global backstop caps
+    // total cost even across freshly created sessions.
+    const aiLimitMessage =
+      "Das Limit für KI-Anfragen ist erreicht. Bitte später erneut versuchen.";
+    await enforceRateLimit(
+      "ai-global",
+      RATE_LIMIT_AI_GLOBAL.windowSeconds,
+      RATE_LIMIT_AI_GLOBAL.max,
+      aiLimitMessage
+    );
     await enforceRateLimit(
       `ai:${sessionId}`,
       RATE_LIMIT_AI.windowSeconds,
       RATE_LIMIT_AI.max,
-      "Das Limit für KI-Anfragen ist erreicht. Bitte später erneut versuchen."
+      aiLimitMessage
     );
 
     // History is context only, never evidence: citation markers from earlier
@@ -108,10 +118,21 @@ export async function POST(request: Request, { params }: Params) {
     const retrieved = await retrieveChunks(question, notebook.id, selectedSources);
 
     const encoder = new TextEncoder();
+    // Client disconnects must neither crash the stream nor burn further
+    // tokens: send() becomes a no-op and the delta loop stops.
+    let clientGone = false;
     const stream = new ReadableStream<Uint8Array>({
+      cancel() {
+        clientGone = true;
+      },
       async start(controller) {
         const send = (event: SseEvent) => {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+          if (clientGone) return;
+          try {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+          } catch {
+            clientGone = true;
+          }
         };
         try {
           if (retrieved.length === 0) {
@@ -148,6 +169,10 @@ export async function POST(request: Request, { params }: Params) {
               ],
             });
             for await (const part of completion) {
+              if (clientGone) {
+                completion.controller.abort();
+                break;
+              }
               const delta = part.choices[0]?.delta?.content ?? "";
               if (delta) {
                 fullText += delta;
@@ -157,6 +182,9 @@ export async function POST(request: Request, { params }: Params) {
           } catch (err) {
             throw toAiServiceError(err);
           }
+
+          // A disconnected client gets no persisted half answer.
+          if (clientGone) return;
 
           // Validate citations server-side; the client replaces the streamed
           // preview with this final, validated message.
@@ -180,7 +208,13 @@ export async function POST(request: Request, { params }: Params) {
                 : "Die Antwort konnte nicht erzeugt werden. Bitte erneut versuchen.",
           });
         } finally {
-          controller.close();
+          if (!clientGone) {
+            try {
+              controller.close();
+            } catch {
+              // already closed by the runtime after a client disconnect
+            }
+          }
         }
       },
     });

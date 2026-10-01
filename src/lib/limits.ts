@@ -31,10 +31,15 @@ export const SUMMARY_MAX_MAP_CALLS = 10;
 // too-small value yields empty map results on reasoning models.
 export const SUMMARY_MAP_OUTPUT_TOKENS = 1_500;
 
-// Durable rate limits (fixed window, stored in Postgres).
+// Durable rate limits (fixed window, stored in Postgres). The *_GLOBAL
+// variants are backstops without IP/session in the key: they cap the total
+// even when per-IP keys are diluted or sessions are recreated via re-login.
 export const RATE_LIMIT_LOGIN = { windowSeconds: 15 * 60, max: 10 };
+export const RATE_LIMIT_LOGIN_GLOBAL = { windowSeconds: 15 * 60, max: 100 };
 export const RATE_LIMIT_AI = { windowSeconds: 60 * 60, max: 60 };
+export const RATE_LIMIT_AI_GLOBAL = { windowSeconds: 60 * 60, max: 300 };
 export const RATE_LIMIT_UPLOAD = { windowSeconds: 24 * 60 * 60, max: 30 };
+export const RATE_LIMIT_UPLOAD_GLOBAL = { windowSeconds: 24 * 60 * 60, max: 150 };
 
 export const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 

@@ -62,9 +62,12 @@ export async function verifySessionCookieValue(
   if (parts.length !== 2) return null;
   const [encoded, signature] = parts;
   const expected = await hmacSign(encoded, secret);
-  // Comparing two HMAC outputs: an attacker cannot predict the expected value,
-  // so a non-constant-time string comparison is not exploitable here.
-  if (signature !== expected) return null;
+  // Constant-time comparison via double HMAC: hashing both sides removes any
+  // timing signal from the string comparison (the attacker-controlled value
+  // is never compared directly).
+  const expectedMac = await hmacSign(expected, secret);
+  const signatureMac = await hmacSign(signature, secret);
+  if (signatureMac !== expectedMac) return null;
   const bytes = fromBase64Url(encoded);
   if (!bytes) return null;
   let payload: SessionPayload;

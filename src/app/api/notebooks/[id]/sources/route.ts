@@ -5,7 +5,12 @@ import { getNotebook } from "@/lib/db/notebooks";
 import { countSources, createSource, listSources } from "@/lib/db/sources";
 import { getDb, STORAGE_BUCKET } from "@/lib/db/client";
 import { ValidationError } from "@/lib/errors";
-import { MAX_FILE_BYTES, MAX_SOURCES_PER_NOTEBOOK, RATE_LIMIT_UPLOAD } from "@/lib/limits";
+import {
+  MAX_FILE_BYTES,
+  MAX_SOURCES_PER_NOTEBOOK,
+  RATE_LIMIT_UPLOAD,
+  RATE_LIMIT_UPLOAD_GLOBAL,
+} from "@/lib/limits";
 import { enforceRateLimit } from "@/lib/db/rateLimits";
 import { processSource } from "@/lib/processing/process";
 
@@ -80,12 +85,19 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     // Counted before storage and embedding calls; rejected uploads must not
-    // reach OpenAI.
+    // reach OpenAI. The global backstop holds across recreated sessions.
+    const uploadLimitMessage = "Das Upload-Limit ist erreicht. Bitte später erneut versuchen.";
+    await enforceRateLimit(
+      "upload-global",
+      RATE_LIMIT_UPLOAD_GLOBAL.windowSeconds,
+      RATE_LIMIT_UPLOAD_GLOBAL.max,
+      uploadLimitMessage
+    );
     await enforceRateLimit(
       `upload:${sessionId}`,
       RATE_LIMIT_UPLOAD.windowSeconds,
       RATE_LIMIT_UPLOAD.max,
-      "Das Upload-Limit ist erreicht. Bitte später erneut versuchen."
+      uploadLimitMessage
     );
 
     // Storage path is built from generated ids only, never from the filename.

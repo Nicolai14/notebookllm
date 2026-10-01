@@ -11,6 +11,12 @@ export async function createSession(): Promise<string> {
   return data.id;
 }
 
+/** Server-side logout: deleting the row invalidates every copy of the cookie. */
+export async function deleteSession(sessionId: string): Promise<void> {
+  const { error } = await getDb().from("sessions").delete().eq("id", sessionId);
+  if (error) throw error;
+}
+
 /** Returns true if the session row exists (and updates last_seen_at). */
 export async function touchSession(sessionId: string): Promise<boolean> {
   const { data, error } = await getDb()

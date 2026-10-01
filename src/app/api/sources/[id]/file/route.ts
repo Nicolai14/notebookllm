@@ -33,6 +33,9 @@ export async function GET(_request: Request, { params }: Params) {
         "Content-Disposition": `inline; filename="${asciiName}"`,
         "X-Content-Type-Options": "nosniff",
         "Cache-Control": "private, no-store",
+        // Untrusted document content rendered same-origin: the sandbox CSP
+        // denies any script/DOM access (PDF viewers still render).
+        "Content-Security-Policy": "sandbox",
       },
     });
   });

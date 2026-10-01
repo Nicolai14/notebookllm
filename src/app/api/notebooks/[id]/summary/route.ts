@@ -10,6 +10,7 @@ import { AiDisabledError, AppError, ValidationError } from "@/lib/errors";
 import {
   MAX_OUTPUT_TOKENS,
   RATE_LIMIT_AI,
+  RATE_LIMIT_AI_GLOBAL,
   SUMMARY_MAP_OUTPUT_TOKENS,
 } from "@/lib/limits";
 import { enforceRateLimit } from "@/lib/db/rateLimits";
@@ -62,11 +63,19 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     // Counted before any OpenAI call; rejected requests must not reach the API.
+    const aiLimitMessage =
+      "Das Limit für KI-Anfragen ist erreicht. Bitte später erneut versuchen.";
+    await enforceRateLimit(
+      "ai-global",
+      RATE_LIMIT_AI_GLOBAL.windowSeconds,
+      RATE_LIMIT_AI_GLOBAL.max,
+      aiLimitMessage
+    );
     await enforceRateLimit(
       `ai:${sessionId}`,
       RATE_LIMIT_AI.windowSeconds,
       RATE_LIMIT_AI.max,
-      "Das Limit für KI-Anfragen ist erreicht. Bitte später erneut versuchen."
+      aiLimitMessage
     );
 
     await ensureEmbeddingConfigMatches();
@@ -105,10 +114,20 @@ export async function POST(request: Request, { params }: Params) {
 
     const openai = getOpenAI();
     const encoder = new TextEncoder();
+    // Client disconnects must neither crash the stream nor burn further tokens.
+    let clientGone = false;
     const stream = new ReadableStream<Uint8Array>({
+      cancel() {
+        clientGone = true;
+      },
       async start(controller) {
         const send = (event: SseEvent) => {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+          if (clientGone) return;
+          try {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+          } catch {
+            clientGone = true;
+          }
         };
         try {
           let finalPrompt: string;
@@ -186,6 +205,10 @@ export async function POST(request: Request, { params }: Params) {
               messages: [{ role: "user", content: finalPrompt }],
             });
             for await (const part of completion) {
+              if (clientGone) {
+                completion.controller.abort();
+                break;
+              }
               const delta = part.choices[0]?.delta?.content ?? "";
               if (delta) {
                 fullText += delta;
@@ -195,6 +218,9 @@ export async function POST(request: Request, { params }: Params) {
           } catch (err) {
             throw toAiServiceError(err);
           }
+
+          // A disconnected client gets no persisted half summary.
+          if (clientGone) return;
 
           if (allowedMarkers) {
             const allowed = allowedMarkers;
@@ -223,7 +249,13 @@ export async function POST(request: Request, { params }: Params) {
                 : "Die Zusammenfassung konnte nicht erstellt werden. Bitte erneut versuchen.",
           });
         } finally {
-          controller.close();
+          if (!clientGone) {
+            try {
+              controller.close();
+            } catch {
+              // already closed by the runtime after a client disconnect
+            }
+          }
         }
       },
     });

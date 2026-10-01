@@ -9,6 +9,13 @@ export function AppHeader({ subtitle }: { subtitle?: string }) {
   const router = useRouter();
 
   async function handleLogout() {
+    if (
+      !window.confirm(
+        "Abmelden? Die Sitzung wird beendet und ihre Notebooks, Dateien und Verläufe werden gelöscht."
+      )
+    ) {
+      return;
+    }
     await apiJson("/api/auth/logout", "POST");
     router.replace("/login");
   }
