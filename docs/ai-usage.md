@@ -2,7 +2,7 @@
 
 Dieses Dokument trennt klar: (1) die wichtigsten Prompts der Anwendung, (2) Vorschläge des Assistenten, (3) Entscheidungen des Auftraggebers, (4) tatsächlich erfolgte Prüfungen. Es wird über die Projektlaufzeit fortgeschrieben.
 
-Stand: 2026-09-30, Planungsphase. Es existiert noch kein Anwendungscode; alle Prompts sind Entwürfe und werden bei der Implementierung hier auf den finalen Stand gebracht.
+Stand: 2026-10-01, nach Umsetzung von M1 und M2. Der Chat-Systemprompt aus 1.1 ist implementiert (`src/lib/rag/prompt.ts`); 1.2 und 1.3 bleiben Entwürfe für M5.
 
 ## 1. Anwendungs-Prompts (Entwurf)
 
@@ -82,14 +82,35 @@ Per initialem Auftrag (`docs/prompts/01-project-brief.md`) festgelegt:
 - Keine Antworten aus allgemeinem Modellwissen bei fehlender Quellenbasis.
 - Review-Prozess mit drei getrennten Agents; Deployment erst nach Freigabe.
 
-Noch offen (siehe `docs/architecture.md`, Abschnitt 12): Supabase-Projekt, Subdomain, UI-Sprache, Eval-Budget, Session-Aufräumen.
+Mit der Freigabe vom 2026-10-01 (`docs/prompts/02-m1-m2-go.md`) zusätzlich entschieden:
+
+- UI-Sprache Deutsch; Domain `llm.truenasserver.com`; bestehendes Supabase-Projekt und OpenAI-Zugang per lokaler `.env`.
+- Verarbeitung muss vollständig im Upload-Request abgeschlossen werden oder kontrolliert fehlschlagen; zusätzliche Limits für PDF-Seiten, extrahierte Tokens und Verarbeitungsdauer; Status-Polling nur zur Anzeige.
+- Zusammenfassung ohne Vollständigkeits-/Richtigkeitsgarantie: kurze Dokumente direkt, längere begrenzt mehrstufig (bleibt in M5).
+
+Noch offen (siehe `docs/architecture.md`, Abschnitt 12): Eval-Budget, Session-Aufräumen.
 
 ## 4. Tatsächlich erfolgte Prüfungen
 
-Ehrlicher Stand der Planungsphase:
+Stand 2026-10-01 (M1/M2), klar getrennt nach Mock und echtem OpenAI:
 
-- **Keine.** Es wurde noch kein Code geschrieben, kein Test ausgeführt, kein Prompt gegen ein Modell getestet und keine Bibliothek praktisch verifiziert. Alle Aussagen in den Planungsdokumenten sind begründete Annahmen, keine Messergebnisse.
-- Ab M2 werden hier eingetragen: ausgeführte Testläufe, Ergebnisse der Live-Evaluation (auch negative), reale Prompt-Anpassungen mit Anlass, sowie die Review-Befunde aus M8 mit ihrem Bearbeitungsstand.
+**Ohne OpenAI-Aufrufe (deterministisch):**
+
+- `npm run test:unit`: 25 Tests grün (Chunking inkl. Überlappung und Seitengrenzen, Zitatvalidierung inkl. erfundener Marker, Session-Cookie inkl. Manipulation und Ablauf, Konfigurationsvalidierung, TXT-Extraktion).
+- `npm run test:integration`: 11 Tests grün gegen die echte Supabase-Datenbank mit Fake-Embeddings (Session-Trennung in der Datenzugriffsschicht, Notebook- und Quellen-Scoping der Vektorsuche bei identischen Vektoren, Ähnlichkeitsschwelle, vollständige Löschkaskaden inkl. Storage-Dateien, Session-Kaskade).
+
+**Mit OpenAI-Mock (`tests/mocks/openai-mock.mjs`, per `OPENAI_BASE_URL` eingehängt):**
+
+- `npm run test:e2e`: 7 Playwright-Tests grün. Zentraler Durchstich im Browser: Login → Notebook anlegen → TXT-Upload → Status "Bereit" → Frage → gestreamte Antwort → Zitat-Chip `[1]` sichtbar, ungültiger Marker `[9]` serverseitig entfernt → Klick zeigt Dateiname und Originalpassage → Verlauf übersteht Reload → Löschen. Dazu API-Tests: 401 ohne Cookie auf allen Datenrouten, falsches Passwort, IDOR-Matrix über zwei Sessions (Lesen, Löschen, Upload, Chat), Upload-Validierung (Größe, Typ, leer), Limit 10 Quellen (11. Upload abgelehnt), Chat ohne verarbeitete Quelle.
+
+**Gegen das echte OpenAI (Modell laut `.env`):**
+
+- Manueller API-Durchlauf gegen den Produktions-Build: Login, Notebook anlegen, TXT-Upload. Der Embedding-Aufruf erreichte die echte OpenAI-API und schlug mit HTTP 429 `credit_balance_exhausted` fehl (kein Guthaben auf dem Konto). Damit ist der echte Fehlerpfad verifiziert: Quelle endet im Status `error` mit der Meldung "Der KI-Dienst ist derzeit nicht verfügbar (Kontingent oder Verbindung)...".
+- **Blocker:** Ein vollständiger Live-Durchlauf (Embedding + Antwort + Zitate mit echtem Modell) war mangels OpenAI-Guthaben nicht möglich und steht aus, sobald Guthaben verfügbar ist.
+
+**Manuell geprüft (ohne OpenAI-Aufruf):** Kill-Switch `AI_FEATURES_ENABLED=false`: Chat antwortet 503, Upload endet kontrolliert im Status `error` mit "KI-Funktionen sind derzeit deaktiviert."; Verwaltung (Notebook anlegen/löschen) funktioniert weiter.
+
+**Nicht geprüft:** Antwort- und Zitatqualität des echten Modells (geplant als Live-Evaluation in M7), PDF/Markdown (M3), Rate-Limits (M6).
 
 ## 5. Bekannte Grenzen der AI-Funktionen
 
