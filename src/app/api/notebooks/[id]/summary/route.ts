@@ -7,7 +7,12 @@ import { listChunksBySources } from "@/lib/db/chunks";
 import { insertMessage } from "@/lib/db/messages";
 import { ensureEmbeddingConfigMatches } from "@/lib/db/embeddingConfig";
 import { AiDisabledError, AppError, ValidationError } from "@/lib/errors";
-import { MAX_OUTPUT_TOKENS, SUMMARY_MAP_OUTPUT_TOKENS } from "@/lib/limits";
+import {
+  MAX_OUTPUT_TOKENS,
+  RATE_LIMIT_AI,
+  SUMMARY_MAP_OUTPUT_TOKENS,
+} from "@/lib/limits";
+import { enforceRateLimit } from "@/lib/db/rateLimits";
 import { getOpenAI, toAiServiceError } from "@/lib/openai";
 import { validateCitations } from "@/lib/rag/citations";
 import {
@@ -54,6 +59,14 @@ export async function POST(request: Request, { params }: Params) {
         "Keine der ausgewählten Quellen ist verarbeitet und verfügbar."
       );
     }
+
+    // Counted before any OpenAI call; rejected requests must not reach the API.
+    await enforceRateLimit(
+      `ai:${sessionId}`,
+      RATE_LIMIT_AI.windowSeconds,
+      RATE_LIMIT_AI.max,
+      "Das Limit für KI-Anfragen ist erreicht. Bitte später erneut versuchen."
+    );
 
     await ensureEmbeddingConfigMatches();
 

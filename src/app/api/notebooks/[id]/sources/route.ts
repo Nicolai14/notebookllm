@@ -5,7 +5,8 @@ import { getNotebook } from "@/lib/db/notebooks";
 import { countSources, createSource, listSources } from "@/lib/db/sources";
 import { getDb, STORAGE_BUCKET } from "@/lib/db/client";
 import { ValidationError } from "@/lib/errors";
-import { MAX_FILE_BYTES, MAX_SOURCES_PER_NOTEBOOK } from "@/lib/limits";
+import { MAX_FILE_BYTES, MAX_SOURCES_PER_NOTEBOOK, RATE_LIMIT_UPLOAD } from "@/lib/limits";
+import { enforceRateLimit } from "@/lib/db/rateLimits";
 import { processSource } from "@/lib/processing/process";
 
 export const maxDuration = 120;
@@ -77,6 +78,15 @@ export async function POST(request: Request, { params }: Params) {
         `Pro Notebook sind höchstens ${MAX_SOURCES_PER_NOTEBOOK} Quellen erlaubt.`
       );
     }
+
+    // Counted before storage and embedding calls; rejected uploads must not
+    // reach OpenAI.
+    await enforceRateLimit(
+      `upload:${sessionId}`,
+      RATE_LIMIT_UPLOAD.windowSeconds,
+      RATE_LIMIT_UPLOAD.max,
+      "Das Upload-Limit ist erreicht. Bitte später erneut versuchen."
+    );
 
     // Storage path is built from generated ids only, never from the filename.
     const storagePath = `${sessionId}/${notebook.id}/${crypto.randomUUID()}`;

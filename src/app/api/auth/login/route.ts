@@ -6,7 +6,8 @@ import { ValidationError } from "@/lib/errors";
 import { createSession } from "@/lib/db/sessions";
 import { createSessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { cookieSecure } from "@/lib/auth/cookie";
-import { SESSION_TTL_MS } from "@/lib/limits";
+import { RATE_LIMIT_LOGIN, SESSION_TTL_MS } from "@/lib/limits";
+import { enforceRateLimit, resetRateLimit } from "@/lib/db/rateLimits";
 
 function passwordMatches(candidate: string, expected: string): boolean {
   // Hashing both sides yields equal-length buffers for timingSafeEqual.
@@ -23,9 +24,23 @@ export async function POST(request: Request) {
     if (typeof password !== "string" || password.length === 0) {
       throw new ValidationError("Bitte Passwort eingeben.");
     }
+
+    // Every attempt counts atomically against the per-IP window; a successful
+    // login resets the counter. During a block even the correct password is
+    // rejected, which is the point of a brute-force lockout.
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rateLimitKey = `login:${ip}`;
+    await enforceRateLimit(
+      rateLimitKey,
+      RATE_LIMIT_LOGIN.windowSeconds,
+      RATE_LIMIT_LOGIN.max,
+      "Zu viele Anmeldeversuche. Bitte später erneut versuchen."
+    );
+
     if (!passwordMatches(password, config.DEMO_PASSWORD)) {
       return NextResponse.json({ error: "Falsches Passwort." }, { status: 401 });
     }
+    await resetRateLimit(rateLimitKey);
 
     const sessionId = await createSession();
     const cookieValue = await createSessionCookieValue(

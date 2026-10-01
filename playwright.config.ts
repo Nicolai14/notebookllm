@@ -12,6 +12,8 @@ try {
 
 const APP_PORT = 3105;
 const MOCK_PORT = 4105;
+// Second app instance with AI_FEATURES_ENABLED=false for kill-switch tests.
+export const KILL_SWITCH_PORT = 3107;
 
 export default defineConfig({
   testDir: "tests/e2e",
@@ -35,6 +37,16 @@ export default defineConfig({
       env: {
         OPENAI_BASE_URL: `http://127.0.0.1:${MOCK_PORT}/v1`,
         COOKIE_SECURE: "false",
+      },
+      reuseExistingServer: false,
+    },
+    {
+      command: `npx next start -p ${KILL_SWITCH_PORT}`,
+      port: KILL_SWITCH_PORT,
+      env: {
+        OPENAI_BASE_URL: `http://127.0.0.1:${MOCK_PORT}/v1`,
+        COOKIE_SECURE: "false",
+        AI_FEATURES_ENABLED: "false",
       },
       reuseExistingServer: false,
     },

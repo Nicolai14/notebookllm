@@ -108,7 +108,7 @@ Akzeptanzkriterien:
 Umfang:
 
 - Lücken der deterministischen Suite schließen; Playwright-Durchstich auf finale UI aktualisiert; CI-fähiger Testlauf (alles gegen Mock).
-- `scripts/eval`: Datenset (beantwortbar, unbeantwortbar, quellenübergreifend, Injection), getrennte Metriken für Retrieval (Hit-Rate der erwarteten Chunks) und Antwortqualität (belegt, korrekt zitiert, Ablehnung, Injection-Resistenz), Markdown-Report.
+- `scripts/eval`: Datenset (beantwortbar, unbeantwortbar, quellenübergreifend, Injection, Quellenwechsel im Verlauf: zuvor beantwortete Frage erneut stellen, nachdem die einzige belegende Quelle abgewählt wurde; erwartet wird eine Ablehnung statt unbelegter Übernahme aus dem Verlauf), getrennte Metriken für Retrieval (Hit-Rate der erwarteten Chunks) und Antwortqualität (belegt, korrekt zitiert, Ablehnung, Injection-Resistenz), Markdown-Report.
 
 Akzeptanzkriterien:
 

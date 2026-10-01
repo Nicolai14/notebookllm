@@ -9,7 +9,9 @@ import {
   CHAT_HISTORY_MAX_TURNS,
   MAX_OUTPUT_TOKENS,
   MAX_QUESTION_CHARS,
+  RATE_LIMIT_AI,
 } from "@/lib/limits";
+import { enforceRateLimit } from "@/lib/db/rateLimits";
 import { getOpenAI, toAiServiceError } from "@/lib/openai";
 import { validateCitations } from "@/lib/rag/citations";
 import { buildChatSystemPrompt, NO_ANSWER_TEXT } from "@/lib/rag/prompt";
@@ -65,9 +67,24 @@ export async function POST(request: Request, { params }: Params) {
       );
     }
 
-    const history = (await listMessages(sessionId, notebook.id)).slice(
-      -CHAT_HISTORY_MAX_TURNS * 2
+    // Counted before any OpenAI call (the question embedding is the first);
+    // rejected requests must not reach the API.
+    await enforceRateLimit(
+      `ai:${sessionId}`,
+      RATE_LIMIT_AI.windowSeconds,
+      RATE_LIMIT_AI.max,
+      "Das Limit für KI-Anfragen ist erreicht. Bitte später erneut versuchen."
     );
+
+    // History is context only, never evidence: citation markers from earlier
+    // turns point at excerpts that are no longer part of the prompt, so they
+    // are stripped before the model sees the history.
+    const history = (await listMessages(sessionId, notebook.id))
+      .slice(-CHAT_HISTORY_MAX_TURNS * 2)
+      .map((m) => ({
+        ...m,
+        content: m.content.replace(/\[\d{1,4}\]/g, "").replace(/[ \t]{2,}/g, " "),
+      }));
     await insertMessage({ notebook_id: notebook.id, role: "user", content: question });
 
     const retrieved = await retrieveChunks(question, notebook.id, selectedSources);
