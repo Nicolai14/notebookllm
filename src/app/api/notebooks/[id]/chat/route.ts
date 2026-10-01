@@ -94,6 +94,11 @@ export async function POST(request: Request, { params }: Params) {
               model: config.OPENAI_CHAT_MODEL,
               stream: true,
               max_completion_tokens: MAX_OUTPUT_TOKENS,
+              // Omitted entirely when unset; models without reasoning support
+              // must not receive the parameter.
+              ...(config.OPENAI_REASONING_EFFORT
+                ? { reasoning_effort: config.OPENAI_REASONING_EFFORT }
+                : {}),
               messages: [
                 { role: "system", content: buildChatSystemPrompt(retrieved) },
                 ...history.map((m) => ({

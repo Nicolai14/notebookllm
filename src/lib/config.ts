@@ -7,6 +7,8 @@ const envSchema = z.object({
   OPENAI_EMBEDDING_DIMENSIONS: z.coerce.number().int().positive(),
   // Test-only override to point the OpenAI SDK at a local mock server.
   OPENAI_BASE_URL: z.url().optional(),
+  // Optional: only sent to the API when set (reasoning-capable chat models).
+  OPENAI_REASONING_EFFORT: z.enum(["minimal", "low", "medium", "high"]).optional(),
   DEMO_PASSWORD: z.string().min(8),
   AUTH_SECRET: z.string().min(32),
   SUPABASE_URL: z.url(),
