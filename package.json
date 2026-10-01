@@ -12,7 +12,8 @@
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
     "test:e2e": "next build && playwright test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "eval": "node scripts/eval/run.mjs"
   },
   "dependencies": {
     "@radix-ui/react-popover": "^1.1.23",
