@@ -16,10 +16,17 @@ import { buildChunks } from "./chunk";
  * request. Always terminates in status 'ready' or 'error'; the overall timeout
  * aborts long runs deterministically. Status polling is display-only.
  */
-export async function processSource(source: SourceRow, file: Buffer): Promise<SourceRow> {
+export async function processSource(
+  source: SourceRow,
+  file: Buffer,
+  timeoutMs: number = MAX_PROCESSING_MS
+): Promise<SourceRow> {
   await updateSourceStatus(source.id, "processing");
+  // The losing promise of Promise.race keeps running; the guard stops it from
+  // writing chunks for a source that was already marked as failed.
+  const guard = { expired: false };
   try {
-    const result = await withTimeout(runPipeline(source, file), MAX_PROCESSING_MS);
+    const result = await withTimeout(runPipeline(source, file, guard), timeoutMs, guard);
     const fields = {
       error_message: null,
       page_count: result.pageCount,
@@ -45,7 +52,11 @@ interface PipelineResult {
   extractedChars: number;
 }
 
-async function runPipeline(source: SourceRow, file: Buffer): Promise<PipelineResult> {
+async function runPipeline(
+  source: SourceRow,
+  file: Buffer,
+  guard: { expired: boolean }
+): Promise<PipelineResult> {
   if (!getConfig().AI_FEATURES_ENABLED) throw new AiDisabledError();
   await ensureEmbeddingConfigMatches();
 
@@ -83,6 +94,9 @@ async function runPipeline(source: SourceRow, file: Buffer): Promise<PipelineRes
 
   const embeddings = await embedTexts(chunks.map((c) => c.content));
 
+  if (guard.expired) {
+    throw new AppError("Die Verarbeitung hat zu lange gedauert und wurde abgebrochen.", 422);
+  }
   await insertChunks(
     chunks.map((chunk, i) => ({
       source_id: source.id,
@@ -100,19 +114,19 @@ async function runPipeline(source: SourceRow, file: Buffer): Promise<PipelineRes
   return { pageCount, extractedChars: totalText.length };
 }
 
-async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+async function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  guard: { expired: boolean }
+): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(
-      () =>
-        reject(
-          new AppError(
-            "Die Verarbeitung hat zu lange gedauert und wurde abgebrochen.",
-            422
-          )
-        ),
-      ms
-    );
+    timer = setTimeout(() => {
+      guard.expired = true;
+      reject(
+        new AppError("Die Verarbeitung hat zu lange gedauert und wurde abgebrochen.", 422)
+      );
+    }, ms);
   });
   try {
     return await Promise.race([promise, timeout]);
