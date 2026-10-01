@@ -5,6 +5,7 @@ import { getConfig } from "@/lib/config";
 import { ValidationError } from "@/lib/errors";
 import { createSession } from "@/lib/db/sessions";
 import { createSessionCookieValue, SESSION_COOKIE_NAME } from "@/lib/auth/session";
+import { cookieSecure } from "@/lib/auth/cookie";
 import { SESSION_TTL_MS } from "@/lib/limits";
 
 function passwordMatches(candidate: string, expected: string): boolean {
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
     const response = NextResponse.json({ ok: true });
     response.cookies.set(SESSION_COOKIE_NAME, cookieValue, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: cookieSecure(),
       sameSite: "lax",
       path: "/",
       maxAge: Math.floor(SESSION_TTL_MS / 1000),
