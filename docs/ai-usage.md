@@ -106,6 +106,22 @@ Noch offen (siehe `docs/architecture.md`, Abschnitt 12): Eval-Budget, Session-Au
 
 ## 4. Tatsächlich erfolgte Prüfungen
 
+### Stand nach M7/M8 (2026-10-01)
+
+**M7, Live-Evaluation (echte OpenAI-Aufrufe, gpt-6.1-sol, reasoning_effort=low):**
+
+- Datenset: `scripts/eval/dataset.mjs`, eigene Testdokumente (TXT, Markdown mit Abschnitten, 3-seitiges PDF, widersprüchliche Richtlinien, Injektionsdokument, deterministische Langdokumente). Erwartungen, Belegstellen und Quellenauswahl wurden vor dem ersten Lauf definiert und versioniert committet.
+- **Lauf 1: 12/17 bestanden** (`docs/eval/report-2026-10-01.md`, unverändert dokumentiert). Fehlschläge: (a) mehrstufige Zusammenfassungen unbrauchbar, weil Reasoning-Tokens das Map-Output-Budget (700) aufzehrten und alle Zwischenergebnisse leer blieben — echter Produktfehler; (b) Markdown-Beleg zeigte den gesamten Dokumentbereich statt des Abschnitts "Filterwechsel" — Chunking mergte über Abschnittsgrenzen; (c) zwei inhaltlich korrekte Verweigerungen wurden von der Refusal-Heuristik nicht erkannt (Checker-Schwäche, Verhalten des Modells war richtig); (d) der Fall "vollständig ausgelassene Quelle" konnte konstruktionsbedingt nicht eintreten (Langdokumente zu klein, Auslassungsziel von zufälliger UUID-Reihenfolge abhängig).
+- Korrekturen dazwischen: Produktfixes (Map-Budget + Fehlerausweis leerer Zwischenergebnisse, Abschnitts-treues Markdown-Chunking, deterministische Quellen-Reihenfolge), Checker-Korrekturen (Refusal-Muster v2, Judge-Pflicht bei zitatlosen Antworten) und Datenset-Konstruktur (größere Langdokumente, neue Fälle 17a/b: Zusammenfassung im Verlauf + Quellenwechsel, Fall 10b/17b: Judge statt starrem mustNotContain). Alles im Kopf von `dataset.mjs` ausgewiesen; inhaltliche Erwartungen unverändert.
+- **Lauf 2: 18/19 bestanden** (`docs/eval/report-2026-10-01-1240.md`). Bestanden u. a.: PDF-Seitenbelege (Seite 2/3), Markdown-Abschnitt "Filterwechsel", Widerspruch (12 und 24 Monate, beide zitiert), beide Injektionsfälle, Quellenwechsel 10a/10b und 17a/17b (keine unbelegte Übernahme aus dem Verlauf), gedeckelte Zusammenfassung mit explizit "vollständig ausgelassener" Quelle. Fehlgeschlagen: Fall 14 (mehrstufige Zusammenfassung) — alle Map-Zwischenergebnisse erneut leer (Reasoning zehrte auch 1500 Tokens auf); die Anwendung meldete dies jetzt korrekt als Fehler statt Müll zu liefern. Nachgebessert (Budget 3000 + ein Retry pro Batch), gezielter Nachtest der Fälle 14/15: Ergebnis siehe unten.
+- Prüfmethoden im Report gekennzeichnet: "auto" (deterministisch) vs. "ai-reviewer" (Bewertung durch das konfigurierte Modell; in diesem Lauf Selbstbewertung, im Report explizit ausgewiesen; keine menschliche Prüfung). Token-Messung: exakt nur für die Judge-Aufrufe (Lauf 2: 11 Aufrufe, 3.241 Prompt-/667 Completion-Tokens); für die App-Aufrufe Laufzeit je Fall plus Schätzwerte, da die Anwendung die API-Usage nicht erfasst (bewusste Grenze).
+
+**M8, Reviews und Korrekturen:**
+
+- Drei getrennte, ausschließlich lesende Review-Agenten mit eigenem Kontext: `docs/reviews/test-engineer.md` (13 Befunde, 2 hoch), `docs/reviews/rag-reviewer.md` (12 Befunde, 1 hoch), `docs/reviews/security-reviewer.md` (8 Befunde, 1 hoch). Jeder Befund mit Schweregrad, Stelle, Nachweis und Lösungsvorschlag.
+- Bewertung und Umsetzung durch den Hauptagenten in `docs/reviews/findings-resolution.md`: alle hohen und mittleren bestätigten Befunde behoben (u. a. vertrauenswürdige Client-IP via `CLIENT_IP_HEADER` + globale Backstop-Limits, serverseitige Logout-Invalidierung, Timeout-Guard gegen verwaiste Chunks — das Race wurde im Unit-Test real nachgewiesen und dann gefixt —, Mock-Fehlerinjektion samt neuer Fehlerpfad-Tests, Reduce-Marker-Härtung, SSE-Abbruchsicherheit); Rest explizit als teilweise/akzeptiert/offen begründet.
+- Regression nach den Korrekturen: 51 Unit- + 15 Integrationstests und 30 Playwright-Tests grün (Mock, ohne OpenAI).
+
 ### Stand nach M5/M6 (2026-10-01, abends)
 
 **Ohne OpenAI-Aufrufe (deterministisch):**
