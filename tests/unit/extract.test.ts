@@ -6,7 +6,12 @@ describe("extractTxt", () => {
   it("splits paragraphs and labels them sequentially", () => {
     const units = extractTxt(Buffer.from("Absatz eins.\n\nAbsatz zwei.\n\n\nAbsatz drei."));
     expect(units).toHaveLength(3);
-    expect(units[0]).toEqual({ text: "Absatz eins.", page: null, sectionPath: "Absatz 1" });
+    expect(units[0]).toEqual({
+      text: "Absatz eins.",
+      page: null,
+      sectionPath: "Absatz 1",
+      mergeKey: "txt",
+    });
     expect(units[2].sectionPath).toBe("Absatz 3");
   });
 

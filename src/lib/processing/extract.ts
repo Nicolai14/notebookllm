@@ -9,6 +9,12 @@ export interface ExtractedUnit {
   text: string;
   page: number | null;
   sectionPath: string | null;
+  /**
+   * Units may only be merged into one chunk when their mergeKey matches:
+   * PDF pages and Markdown sections stay separate so citation locations are
+   * exact; TXT paragraphs (artificial labels) may merge freely.
+   */
+  mergeKey: string;
 }
 
 export function extractMarkdown(buffer: Buffer): ExtractedUnit[] {
@@ -35,7 +41,7 @@ export function extractMarkdown(buffer: Buffer): ExtractedUnit[] {
 
     const sectionPath =
       headingPath.filter(Boolean).join(" > ") || `Absatz ${++paragraphFallback}`;
-    units.push({ text: trimmed, page: null, sectionPath });
+    units.push({ text: trimmed, page: null, sectionPath, mergeKey: sectionPath });
   }
 
   if (units.length === 0) {
@@ -62,5 +68,6 @@ export function extractTxt(buffer: Buffer): ExtractedUnit[] {
     text: p,
     page: null,
     sectionPath: `Absatz ${i + 1}`,
+    mergeKey: "txt",
   }));
 }

@@ -34,7 +34,9 @@ export async function retrieveChunks(
   let budget = CONTEXT_TOKEN_BUDGET;
   for (const match of matches) {
     const tokens = Math.ceil(match.content.length / 4);
-    if (tokens > budget) break;
+    // Skip (not break): an oversized chunk must not discard smaller,
+    // lower-ranked hits that still fit the budget.
+    if (tokens > budget) continue;
     budget -= tokens;
     result.push({
       ...match,

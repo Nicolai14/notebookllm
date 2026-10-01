@@ -33,11 +33,12 @@ export function validateCitations(
   const used = new Set<number>();
 
   const content = modelText
-    .replace(/\[(\d{1,4})\]/g, (match, digits: string) => {
+    .replace(/\[(\d+)\]/g, (_match, digits: string) => {
       const marker = Number(digits);
       if (marker >= 1 && marker <= retrieved.length) {
         used.add(marker);
-        return match;
+        // Normalized form: "[01]" becomes "[1]" so text and chip stay in sync.
+        return `[${marker}]`;
       }
       return "";
     })

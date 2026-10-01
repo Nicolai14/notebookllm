@@ -22,6 +22,7 @@ import {
   buildSummaryReducePrompt,
   planSummary,
 } from "@/lib/rag/summary";
+import { chunkLocationLabel } from "@/lib/rag/prompt";
 import type { MessageRow } from "@/lib/db/types";
 
 export const maxDuration = 120;
@@ -75,6 +76,15 @@ export async function POST(request: Request, { params }: Params) {
       notebook.id,
       selectedSources.map((s) => s.id)
     );
+    // Deterministic order: sources in upload order (selectedSources is sorted
+    // by created_at), chunks in document order. Without this, batching caps
+    // would hit a random source (UUID ordering).
+    const sourceRank = new Map(selectedSources.map((s, i) => [s.id, i]));
+    rows.sort(
+      (a, b) =>
+        (sourceRank.get(a.source_id) ?? 0) - (sourceRank.get(b.source_id) ?? 0) ||
+        a.chunk_index - b.chunk_index
+    );
     const plan = planSummary(
       rows.map((row) => ({
         ...row,
@@ -102,6 +112,9 @@ export async function POST(request: Request, { params }: Params) {
         };
         try {
           let finalPrompt: string;
+          const omissions = [...plan.omissions];
+          let allowedMarkers: Set<number> | null = null;
+
           if (plan.mode === "direct") {
             finalPrompt = buildSummaryDirectPrompt(plan.included);
           } else {
@@ -122,13 +135,43 @@ export async function POST(request: Request, { params }: Params) {
                       },
                     ],
                   });
-                  return completion.choices[0]?.message?.content ?? "";
+                  const choice = completion.choices[0];
+                  if (choice?.finish_reason === "length") {
+                    console.warn(`summary map call truncated (batch ${batch.filename})`);
+                  }
+                  return { batch, text: choice?.message?.content ?? "" };
                 } catch (err) {
                   throw toAiServiceError(err);
                 }
               })
             );
-            finalPrompt = buildSummaryReducePrompt(partials.filter((p) => p.length > 0));
+
+            // An empty map result silently drops a whole batch: surface it as
+            // an explicit omission instead.
+            const usable = partials.filter((p) => p.text.trim().length > 0);
+            for (const { batch } of partials.filter((p) => p.text.trim().length === 0)) {
+              omissions.push({
+                filename: batch.filename,
+                fromLabel: chunkLocationLabel(batch.chunks[0]),
+                entireSource: false,
+              });
+            }
+            if (usable.length === 0) {
+              throw new AppError(
+                "Die Zusammenfassung konnte nicht erstellt werden (keine verwertbaren Zwischenergebnisse). Bitte erneut versuchen.",
+                502
+              );
+            }
+
+            // The reduce step may only reuse markers that actually appear in
+            // the map results; everything else is stripped before validation.
+            allowedMarkers = new Set();
+            for (const { text } of usable) {
+              for (const match of text.matchAll(/\[(\d+)\]/g)) {
+                allowedMarkers.add(Number(match[1]));
+              }
+            }
+            finalPrompt = buildSummaryReducePrompt(usable.map((p) => p.text));
           }
 
           let fullText = "";
@@ -153,8 +196,14 @@ export async function POST(request: Request, { params }: Params) {
             throw toAiServiceError(err);
           }
 
+          if (allowedMarkers) {
+            const allowed = allowedMarkers;
+            fullText = fullText.replace(/\[(\d+)\]/g, (match, digits: string) =>
+              allowed.has(Number(digits)) ? match : ""
+            );
+          }
           const { content, citations } = validateCitations(fullText, plan.included);
-          const finalContent = content + buildOmissionNote(plan.omissions);
+          const finalContent = content + buildOmissionNote(omissions);
           const saved = await insertMessage({
             notebook_id: notebook.id,
             role: "assistant",

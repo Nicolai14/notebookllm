@@ -7,6 +7,7 @@ import { insertMessage, listMessages } from "@/lib/db/messages";
 import { AiDisabledError, AppError, ValidationError } from "@/lib/errors";
 import {
   CHAT_HISTORY_MAX_TURNS,
+  CHAT_HISTORY_TOKEN_BUDGET,
   MAX_OUTPUT_TOKENS,
   MAX_QUESTION_CHARS,
   RATE_LIMIT_AI,
@@ -77,14 +78,31 @@ export async function POST(request: Request, { params }: Params) {
     );
 
     // History is context only, never evidence: citation markers from earlier
-    // turns point at excerpts that are no longer part of the prompt, so they
-    // are stripped before the model sees the history.
-    const history = (await listMessages(sessionId, notebook.id))
-      .slice(-CHAT_HISTORY_MAX_TURNS * 2)
-      .map((m) => ({
-        ...m,
-        content: m.content.replace(/\[\d{1,4}\]/g, "").replace(/[ \t]{2,}/g, " "),
-      }));
+    // assistant turns point at excerpts that are no longer part of the prompt,
+    // so they are stripped (user messages stay untouched). The window is
+    // bounded by turn count AND an estimated token budget, filled from the
+    // most recent message backwards; overlong messages are truncated.
+    const history: { role: "user" | "assistant"; content: string }[] = [];
+    let historyBudget = CHAT_HISTORY_TOKEN_BUDGET;
+    const recent = (await listMessages(sessionId, notebook.id)).slice(
+      -CHAT_HISTORY_MAX_TURNS * 2
+    );
+    for (const m of recent.reverse()) {
+      const content =
+        m.role === "assistant"
+          ? m.content.replace(/\[\d+\]/g, "").replace(/[ \t]{2,}/g, " ")
+          : m.content;
+      const tokens = Math.ceil(content.length / 4);
+      if (tokens > historyBudget) {
+        const allowedChars = historyBudget * 4;
+        if (allowedChars > 200) {
+          history.unshift({ role: m.role, content: content.slice(0, allowedChars) });
+        }
+        break;
+      }
+      historyBudget -= tokens;
+      history.unshift({ role: m.role, content });
+    }
     await insertMessage({ notebook_id: notebook.id, role: "user", content: question });
 
     const retrieved = await retrieveChunks(question, notebook.id, selectedSources);

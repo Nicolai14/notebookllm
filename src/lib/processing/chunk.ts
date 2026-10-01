@@ -65,8 +65,9 @@ export function buildChunks(
       continue;
     }
 
-    const samePage = group.length === 0 || group[group.length - 1].page === unit.page;
-    if (!samePage || groupTokens + unitTokens > targetTokens) {
+    const sameGroup =
+      group.length === 0 || group[group.length - 1].mergeKey === unit.mergeKey;
+    if (!sameGroup || groupTokens + unitTokens > targetTokens) {
       flushGroup();
     }
     group.push(unit);

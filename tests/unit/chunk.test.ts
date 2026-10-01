@@ -2,8 +2,18 @@ import { describe, expect, it } from "vitest";
 import { buildChunks } from "@/lib/processing/chunk";
 import type { ExtractedUnit } from "@/lib/processing/extract";
 
-function unit(text: string, page: number | null, sectionPath: string | null): ExtractedUnit {
-  return { text, page, sectionPath };
+function unit(
+  text: string,
+  page: number | null,
+  sectionPath: string | null,
+  mergeKey?: string
+): ExtractedUnit {
+  return {
+    text,
+    page,
+    sectionPath,
+    mergeKey: mergeKey ?? (page !== null ? `page-${page}` : "txt"),
+  };
 }
 
 describe("buildChunks", () => {
@@ -28,6 +38,17 @@ describe("buildChunks", () => {
     expect(chunks).toHaveLength(2);
     expect(chunks[0].sectionPath).toBe("Absatz 1");
     expect(chunks[1].sectionPath).toBe("Absatz 2");
+  });
+
+  it("never merges markdown units across section boundaries", () => {
+    const units = [
+      unit("Inhalt Inbetriebnahme.", null, "Handbuch > Inbetriebnahme", "Handbuch > Inbetriebnahme"),
+      unit("Inhalt Filterwechsel.", null, "Handbuch > Filterwechsel", "Handbuch > Filterwechsel"),
+    ];
+    const chunks = buildChunks(units, { targetTokens: 500, overlapTokens: 50 });
+    expect(chunks).toHaveLength(2);
+    expect(chunks[0].sectionPath).toBe("Handbuch > Inbetriebnahme");
+    expect(chunks[1].sectionPath).toBe("Handbuch > Filterwechsel");
   });
 
   it("never merges units across page boundaries", () => {

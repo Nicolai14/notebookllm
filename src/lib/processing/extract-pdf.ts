@@ -29,7 +29,12 @@ export async function extractPdf(buffer: Buffer): Promise<PdfExtraction> {
   text.forEach((pageText, index) => {
     const cleaned = pageText.replace(/\s+/g, " ").trim();
     if (cleaned.length > 0) {
-      units.push({ text: cleaned, page: index + 1, sectionPath: null });
+      units.push({
+        text: cleaned,
+        page: index + 1,
+        sectionPath: null,
+        mergeKey: `page-${index + 1}`,
+      });
     }
   });
 

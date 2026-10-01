@@ -15,6 +15,7 @@ export const RETRIEVAL_MIN_SIMILARITY = 0.2;
 export const CONTEXT_TOKEN_BUDGET = 8_000;
 export const MAX_OUTPUT_TOKENS = 1_500;
 export const CHAT_HISTORY_MAX_TURNS = 6;
+export const CHAT_HISTORY_TOKEN_BUDGET = 4_000;
 
 export const MAX_QUESTION_CHARS = 2_000;
 export const MAX_NOTEBOOK_TITLE_CHARS = 120;
@@ -26,7 +27,9 @@ export const SUMMARY_DIRECT_TOKEN_BUDGET = 8_000;
 export const SUMMARY_BATCH_TOKEN_BUDGET = 6_000;
 export const SUMMARY_MAX_BATCHES_PER_SOURCE = 4;
 export const SUMMARY_MAX_MAP_CALLS = 10;
-export const SUMMARY_MAP_OUTPUT_TOKENS = 700;
+// Generous because reasoning tokens count against the completion budget; a
+// too-small value yields empty map results on reasoning models.
+export const SUMMARY_MAP_OUTPUT_TOKENS = 1_500;
 
 // Durable rate limits (fixed window, stored in Postgres).
 export const RATE_LIMIT_LOGIN = { windowSeconds: 15 * 60, max: 10 };

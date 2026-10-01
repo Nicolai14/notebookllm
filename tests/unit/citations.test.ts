@@ -60,6 +60,19 @@ describe("validateCitations", () => {
     expect(citations).toHaveLength(0);
   });
 
+  it("strips very long numeric markers instead of leaving them as fake evidence", () => {
+    const { content, citations } = validateCitations("Aussage [12345].", [retrievedChunk()]);
+    expect(content).toBe("Aussage.");
+    expect(citations).toHaveLength(0);
+  });
+
+  it("normalizes markers with leading zeros", () => {
+    const { content, citations } = validateCitations("Aussage [01].", [retrievedChunk()]);
+    expect(content).toBe("Aussage [1].");
+    expect(citations).toHaveLength(1);
+    expect(citations[0].marker).toBe(1);
+  });
+
   it("deduplicates repeated markers into one citation", () => {
     const { citations } = validateCitations("A [1]. B [1]. C [1][1].", [retrievedChunk()]);
     expect(citations).toHaveLength(1);

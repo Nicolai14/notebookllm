@@ -17,7 +17,7 @@ export function AnswerText({
   existingSourceIds: Set<string>;
 }) {
   const byMarker = new Map(citations.map((c) => [c.marker, c]));
-  const parts = content.split(/\[(\d{1,4})\]/g);
+  const parts = content.split(/\[(\d+)\]/g);
 
   return (
     <span className="whitespace-pre-wrap">
