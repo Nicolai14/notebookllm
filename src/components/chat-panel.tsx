@@ -15,10 +15,14 @@ interface StreamEvent {
 
 export function ChatPanel({
   notebookId,
-  hasReadySources,
+  readySourceCount,
+  selectedSourceIds,
+  existingSourceIds,
 }: {
   notebookId: string;
-  hasReadySources: boolean;
+  readySourceCount: number;
+  selectedSourceIds: string[];
+  existingSourceIds: Set<string>;
 }) {
   const [messages, setMessages] = useState<MessageRow[] | null>(null);
   const [question, setQuestion] = useState("");
@@ -71,7 +75,7 @@ export function ChatPanel({
       const response = await fetch(`/api/notebooks/${notebookId}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: trimmed }),
+        body: JSON.stringify({ question: trimmed, sourceIds: selectedSourceIds }),
       });
       if (!response.ok || !response.body) {
         const data = await response.json().catch(() => null);
@@ -140,7 +144,13 @@ export function ChatPanel({
               </p>
             </div>
           ) : (
-            messages.map((message) => <MessageBubble key={message.id} message={message} />)
+            messages.map((message) => (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                existingSourceIds={existingSourceIds}
+              />
+            ))
           )}
           {streamingText !== null && (
             <div className="rounded-lg bg-muted px-4 py-3 text-sm">
@@ -168,15 +178,20 @@ export function ChatPanel({
             rows={2}
             maxLength={2000}
             placeholder={
-              hasReadySources
-                ? "Frage zu den Quellen stellen ..."
-                : "Lade zuerst eine Quelle hoch."
+              readySourceCount === 0
+                ? "Lade zuerst eine Quelle hoch."
+                : selectedSourceIds.length === 0
+                  ? "Wähle links mindestens eine Quelle aus."
+                  : `Frage zu ${selectedSourceIds.length} ausgewählten Quellen stellen ...`
             }
-            disabled={!hasReadySources || busy}
+            disabled={selectedSourceIds.length === 0 || busy}
             aria-label="Frage an die Quellen"
             className="min-h-10 w-full resize-none rounded-md border border-border bg-surface px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:opacity-50"
           />
-          <Button type="submit" disabled={!hasReadySources || busy || !question.trim()}>
+          <Button
+            type="submit"
+            disabled={selectedSourceIds.length === 0 || busy || !question.trim()}
+          >
             Senden
           </Button>
         </form>
@@ -190,7 +205,13 @@ export function ChatPanel({
   );
 }
 
-function MessageBubble({ message }: { message: MessageRow }) {
+function MessageBubble({
+  message,
+  existingSourceIds,
+}: {
+  message: MessageRow;
+  existingSourceIds: Set<string>;
+}) {
   if (message.role === "user") {
     return (
       <div className="flex justify-end">
@@ -202,7 +223,11 @@ function MessageBubble({ message }: { message: MessageRow }) {
   }
   return (
     <div className="rounded-lg bg-muted px-4 py-3 text-sm leading-relaxed">
-      <AnswerText content={message.content} citations={message.citations} />
+      <AnswerText
+        content={message.content}
+        citations={message.citations}
+        existingSourceIds={existingSourceIds}
+      />
     </div>
   );
 }
@@ -211,7 +236,15 @@ function MessageBubble({ message }: { message: MessageRow }) {
  * Renders validated answer text; [n] markers become clickable citation chips.
  * Text is rendered as plain text (React escaping), never as HTML.
  */
-function AnswerText({ content, citations }: { content: string; citations: Citation[] }) {
+function AnswerText({
+  content,
+  citations,
+  existingSourceIds,
+}: {
+  content: string;
+  citations: Citation[];
+  existingSourceIds: Set<string>;
+}) {
   const byMarker = new Map(citations.map((c) => [c.marker, c]));
   const parts = content.split(/\[(\d{1,4})\]/g);
 
@@ -221,7 +254,13 @@ function AnswerText({ content, citations }: { content: string; citations: Citati
         if (index % 2 === 1) {
           const citation = byMarker.get(Number(part));
           if (citation) {
-            return <CitationChip key={index} citation={citation} />;
+            return (
+              <CitationChip
+                key={index}
+                citation={citation}
+                sourceDeleted={!existingSourceIds.has(citation.source_id)}
+              />
+            );
           }
           return <span key={index}>[{part}]</span>;
         }

@@ -47,17 +47,21 @@ export async function POST(request: Request, { params }: Params) {
       );
     }
 
-    // Source selection: the client may pass source ids, but only ids that
-    // belong to this notebook (and therefore this session) are used.
+    // Source selection is mandatory: an empty selection never falls back to
+    // "all sources". Only ids of ready sources of this notebook (and therefore
+    // this session) survive the filter.
+    const requestedIds: unknown = body?.sourceIds;
+    if (!Array.isArray(requestedIds) || requestedIds.length === 0) {
+      throw new ValidationError(
+        "Keine Quelle ausgewählt. Bitte mindestens eine verarbeitete Quelle auswählen."
+      );
+    }
     const allSources = await listSources(sessionId, notebook.id);
     const readySources = allSources.filter((s) => s.status === "ready");
-    const requestedIds: unknown = body?.sourceIds;
-    const selectedSources = Array.isArray(requestedIds)
-      ? readySources.filter((s) => requestedIds.includes(s.id))
-      : readySources;
+    const selectedSources = readySources.filter((s) => requestedIds.includes(s.id));
     if (selectedSources.length === 0) {
       throw new ValidationError(
-        "Keine verarbeitete Quelle ausgewählt. Bitte zuerst eine Quelle hochladen bzw. auswählen."
+        "Keine der ausgewählten Quellen ist verarbeitet und verfügbar."
       );
     }
 

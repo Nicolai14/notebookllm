@@ -12,7 +12,13 @@ function locationLabel(citation: Citation): string {
   return citation.section_path ?? "Abschnitt unbekannt";
 }
 
-export function CitationChip({ citation }: { citation: Citation }) {
+export function CitationChip({
+  citation,
+  sourceDeleted = false,
+}: {
+  citation: Citation;
+  sourceDeleted?: boolean;
+}) {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -27,6 +33,12 @@ export function CitationChip({ citation }: { citation: Citation }) {
       <PopoverContent>
         <p className="break-words text-sm font-semibold">{citation.filename}</p>
         <p className="mt-0.5 text-xs text-muted-foreground">{locationLabel(citation)}</p>
+        {sourceDeleted && (
+          <p className="mt-1 text-xs text-destructive">
+            Diese Quelle wurde inzwischen gelöscht; die Passage stammt aus dem
+            gespeicherten Zitat.
+          </p>
+        )}
         <blockquote className="mt-3 max-h-56 overflow-y-auto whitespace-pre-wrap border-l border-border pl-3 text-sm text-foreground">
           {citation.passage}
         </blockquote>

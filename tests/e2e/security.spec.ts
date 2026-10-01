@@ -153,14 +153,27 @@ test.describe("Zugriffsschutz", () => {
     await context.dispose();
   });
 
-  test("Chat ohne verarbeitete Quelle liefert eine klare Fehlermeldung", async ({ playwright }) => {
+  test("Chat ohne Quellenauswahl liefert eine klare Fehlermeldung", async ({ playwright }) => {
     const context = await loginContext(playwright as never, baseURL);
     const notebookId = await createNotebook(context, `Leer-Test ${Date.now()}`);
-    const response = await context.post(`/api/notebooks/${notebookId}/chat`, {
-      data: { question: "Was steht in den Quellen?" },
+
+    // Missing and empty selections are rejected; they never mean "all sources".
+    for (const data of [
+      { question: "Was steht in den Quellen?" },
+      { question: "Was steht in den Quellen?", sourceIds: [] },
+    ]) {
+      const response = await context.post(`/api/notebooks/${notebookId}/chat`, { data });
+      expect(response.status()).toBe(400);
+      expect((await response.json()).error).toContain("Keine Quelle ausgewählt");
+    }
+
+    // A selection that only contains foreign/unknown ids is rejected too.
+    const foreign = await context.post(`/api/notebooks/${notebookId}/chat`, {
+      data: { question: "Frage?", sourceIds: [crypto.randomUUID()] },
     });
-    expect(response.status()).toBe(400);
-    expect((await response.json()).error).toContain("Keine verarbeitete Quelle");
+    expect(foreign.status()).toBe(400);
+    expect((await foreign.json()).error).toContain("Keine der ausgewählten Quellen");
+
     await context.delete(`/api/notebooks/${notebookId}`);
     await context.dispose();
   });

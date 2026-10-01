@@ -17,10 +17,19 @@ interface SourcesPanelProps {
   notebookId: string;
   sources: SourceRow[] | null;
   error: string | null;
+  selectedIds: Set<string>;
+  onToggleSelected: (sourceId: string) => void;
   onChanged: () => Promise<void>;
 }
 
-export function SourcesPanel({ notebookId, sources, error, onChanged }: SourcesPanelProps) {
+export function SourcesPanel({
+  notebookId,
+  sources,
+  error,
+  selectedIds,
+  onToggleSelected,
+  onChanged,
+}: SourcesPanelProps) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -104,12 +113,20 @@ export function SourcesPanel({ notebookId, sources, error, onChanged }: SourcesP
               const status = statusLabels[source.status];
               return (
                 <li key={source.id} className="rounded-md border border-border p-3">
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2.5">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(source.id)}
+                      disabled={source.status !== "ready"}
+                      onChange={() => onToggleSelected(source.id)}
+                      aria-label={`${source.filename} für den Chat verwenden`}
+                      className="mt-0.5 size-4 shrink-0 accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-40"
+                    />
                     <a
                       href={`/api/sources/${source.id}/file`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="min-w-0 break-words text-sm font-medium hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      className="min-w-0 flex-1 break-words text-sm font-medium hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                       title="Originaldatei in neuem Tab öffnen"
                     >
                       {source.filename}
