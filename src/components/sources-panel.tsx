@@ -77,10 +77,10 @@ export function SourcesPanel({ notebookId, sources, error, onChanged }: SourcesP
         <input
           ref={fileInput}
           type="file"
-          accept=".txt"
+          accept=".txt,.pdf,.md,.markdown"
           className="hidden"
           onChange={handleUpload}
-          aria-label="Quelle hochladen (TXT)"
+          aria-label="Quelle hochladen (PDF, TXT, Markdown)"
         />
       </div>
 
@@ -96,9 +96,7 @@ export function SourcesPanel({ notebookId, sources, error, onChanged }: SourcesP
         ) : sources.length === 0 ? (
           <div className="text-sm text-muted-foreground">
             <p>Noch keine Quellen.</p>
-            <p className="mt-2">
-              Lade eine TXT-Datei hoch (max. 5 MB). PDF und Markdown folgen.
-            </p>
+            <p className="mt-2">Lade PDF, TXT oder Markdown hoch (max. 5 MB).</p>
           </div>
         ) : (
           <ul className="space-y-3">
@@ -107,9 +105,15 @@ export function SourcesPanel({ notebookId, sources, error, onChanged }: SourcesP
               return (
                 <li key={source.id} className="rounded-md border border-border p-3">
                   <div className="flex items-start justify-between gap-2">
-                    <span className="min-w-0 break-words text-sm font-medium">
+                    <a
+                      href={`/api/sources/${source.id}/file`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="min-w-0 break-words text-sm font-medium hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      title="Originaldatei in neuem Tab öffnen"
+                    >
                       {source.filename}
-                    </span>
+                    </a>
                     <Badge tone={status.tone}>{status.label}</Badge>
                   </div>
                   {source.status === "error" && source.error_message && (
@@ -118,6 +122,7 @@ export function SourcesPanel({ notebookId, sources, error, onChanged }: SourcesP
                   <div className="mt-2 flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">
                       {(source.size_bytes / 1024).toFixed(0)} kB
+                      {source.page_count ? ` · ${source.page_count} Seiten` : ""}
                     </span>
                     <Button variant="destructive" size="sm" onClick={() => handleDelete(source)}>
                       Löschen

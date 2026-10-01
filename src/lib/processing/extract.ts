@@ -11,6 +11,39 @@ export interface ExtractedUnit {
   sectionPath: string | null;
 }
 
+export function extractMarkdown(buffer: Buffer): ExtractedUnit[] {
+  let text = buffer.toString("utf8");
+  if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+  text = text.replace(/\r\n?/g, "\n");
+
+  const units: ExtractedUnit[] = [];
+  // Heading path per level, e.g. "Installation > Docker".
+  const headingPath: string[] = [];
+  let paragraphFallback = 0;
+
+  for (const block of text.split(/\n{2,}/)) {
+    const trimmed = block.trim();
+    if (trimmed.length === 0) continue;
+
+    const headingMatch = /^(#{1,6})\s+(.+?)\s*#*\s*$/.exec(trimmed);
+    if (headingMatch && !trimmed.includes("\n")) {
+      const level = headingMatch[1].length;
+      headingPath.splice(level - 1);
+      headingPath[level - 1] = headingMatch[2];
+      continue;
+    }
+
+    const sectionPath =
+      headingPath.filter(Boolean).join(" > ") || `Absatz ${++paragraphFallback}`;
+    units.push({ text: trimmed, page: null, sectionPath });
+  }
+
+  if (units.length === 0) {
+    throw new ValidationError("Die Datei enthält keinen extrahierbaren Text.");
+  }
+  return units;
+}
+
 export function extractTxt(buffer: Buffer): ExtractedUnit[] {
   let text = buffer.toString("utf8");
   if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);

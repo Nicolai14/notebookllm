@@ -7,7 +7,8 @@ import { insertChunks } from "@/lib/db/chunks";
 import { updateSourceStatus } from "@/lib/db/sources";
 import { ensureEmbeddingConfigMatches } from "@/lib/db/embeddingConfig";
 import type { SourceRow } from "@/lib/db/types";
-import { extractTxt, type ExtractedUnit } from "./extract";
+import { extractMarkdown, extractTxt, type ExtractedUnit } from "./extract";
+import { extractPdf } from "./extract-pdf";
 import { buildChunks } from "./chunk";
 
 /**
@@ -18,9 +19,14 @@ import { buildChunks } from "./chunk";
 export async function processSource(source: SourceRow, file: Buffer): Promise<SourceRow> {
   await updateSourceStatus(source.id, "processing");
   try {
-    await withTimeout(runPipeline(source, file), MAX_PROCESSING_MS);
-    await updateSourceStatus(source.id, "ready", { error_message: null });
-    return { ...source, status: "ready", error_message: null };
+    const result = await withTimeout(runPipeline(source, file), MAX_PROCESSING_MS);
+    const fields = {
+      error_message: null,
+      page_count: result.pageCount,
+      extracted_chars: result.extractedChars,
+    };
+    await updateSourceStatus(source.id, "ready", fields);
+    return { ...source, status: "ready", ...fields };
   } catch (err) {
     const message =
       err instanceof AppError
@@ -34,18 +40,32 @@ export async function processSource(source: SourceRow, file: Buffer): Promise<So
   }
 }
 
-async function runPipeline(source: SourceRow, file: Buffer): Promise<void> {
+interface PipelineResult {
+  pageCount: number | null;
+  extractedChars: number;
+}
+
+async function runPipeline(source: SourceRow, file: Buffer): Promise<PipelineResult> {
   if (!getConfig().AI_FEATURES_ENABLED) throw new AiDisabledError();
   await ensureEmbeddingConfigMatches();
 
   let units: ExtractedUnit[];
+  let pageCount: number | null = null;
   switch (source.mime_type) {
     case "text/plain":
       units = extractTxt(file);
       break;
+    case "text/markdown":
+      units = extractMarkdown(file);
+      break;
+    case "application/pdf": {
+      const extraction = await extractPdf(file);
+      units = extraction.units;
+      pageCount = extraction.pageCount;
+      break;
+    }
     default:
-      // PDF and Markdown follow in M3.
-      throw new ValidationError("Dieser Dateityp wird noch nicht unterstützt.");
+      throw new ValidationError("Dieser Dateityp wird nicht unterstützt.");
   }
 
   const totalText = units.map((u) => u.text).join("\n\n");
@@ -77,9 +97,7 @@ async function runPipeline(source: SourceRow, file: Buffer): Promise<void> {
     }))
   );
 
-  await updateSourceStatus(source.id, "processing", {
-    extracted_chars: totalText.length,
-  });
+  return { pageCount, extractedChars: totalText.length };
 }
 
 async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {

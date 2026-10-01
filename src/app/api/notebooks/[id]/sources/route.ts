@@ -12,10 +12,25 @@ export const maxDuration = 120;
 
 type Params = { params: Promise<{ id: string }> };
 
-// M2: TXT only. PDF and Markdown follow in M3.
 const ALLOWED_EXTENSIONS: Record<string, string> = {
   ".txt": "text/plain",
+  ".md": "text/markdown",
+  ".markdown": "text/markdown",
+  ".pdf": "application/pdf",
 };
+
+/** Content check beyond the extension: PDF magic bytes, no binary "text" files. */
+function validateFileContent(buffer: Buffer, mimeType: string): void {
+  if (mimeType === "application/pdf") {
+    if (!buffer.subarray(0, 5).equals(Buffer.from("%PDF-"))) {
+      throw new ValidationError("Die Datei ist kein gültiges PDF.");
+    }
+    return;
+  }
+  if (buffer.subarray(0, 8192).includes(0)) {
+    throw new ValidationError("Die Datei ist keine Textdatei.");
+  }
+}
 
 export async function GET(_request: Request, { params }: Params) {
   return handleRoute(async () => {
@@ -42,7 +57,7 @@ export async function POST(request: Request, { params }: Params) {
     const mimeType = ALLOWED_EXTENSIONS[extension];
     if (!mimeType) {
       throw new ValidationError(
-        "Dieser Dateityp wird nicht unterstützt. Erlaubt ist derzeit: TXT."
+        "Dieser Dateityp wird nicht unterstützt. Erlaubt sind: PDF, TXT, Markdown."
       );
     }
     if (file.size > MAX_FILE_BYTES) {
@@ -55,6 +70,7 @@ export async function POST(request: Request, { params }: Params) {
     if (buffer.byteLength === 0) {
       throw new ValidationError("Die Datei ist leer.");
     }
+    validateFileContent(buffer, mimeType);
 
     if ((await countSources(notebook.id)) >= MAX_SOURCES_PER_NOTEBOOK) {
       throw new ValidationError(
